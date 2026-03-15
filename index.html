@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matemática Discreta — Contagem</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f11;
+    --bg2: #16161a;
+    --bg3: #1c1c22;
+    --bg4: #242430;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e8f0;
+    --text2: #9898b0;
+    --text3: #6060780;
+    --accent: #7c6af7;
+    --accent2: #a594ff;
+    --accent-bg: rgba(124,106,247,0.12);
+    --accent-border: rgba(124,106,247,0.3);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.1);
+    --green-border: rgba(52,211,153,0.25);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --red-border: rgba(248,113,113,0.25);
+    --yellow: #fbbf24;
+    --yellow-bg: rgba(251,191,36,0.1);
+    --yellow-border: rgba(251,191,36,0.25);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.1);
+    --blue-border: rgba(96,165,250,0.25);
+    --sidebar-w: 260px;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform .3s ease;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .course-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .sidebar-header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .progress-wrap {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--bg4);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width .5s ease;
+  }
+
+  .nav-section {
+    padding: 10px 0;
+  }
+
+  .nav-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    padding: 6px 20px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    cursor: pointer;
+    border-radius: 0;
+    font-size: 13px;
+    color: var(--text2);
+    transition: all .15s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent2); border-left-color: var(--accent); }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--bg4);
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .nav-item.active .nav-dot { background: var(--accent); }
+  .nav-item.done .nav-dot { background: var(--green); }
+  .nav-item.done { color: var(--text2); }
+
+  /* ── MAIN ────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: rgba(15,15,17,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+  }
+
+  .topbar-breadcrumb {
+    font-size: 13px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .topbar-breadcrumb span { color: var(--text); }
+
+  .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 20px;
+    padding: 4px;
+  }
+
+  /* ── CONTENT ─────────────────────────────────── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HOME */
+  .home-hero {
+    padding: 80px 60px 60px;
+    max-width: 800px;
+  }
+
+  .home-hero .tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .home-hero .tag::before {
+    content: '';
+    display: block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+  }
+
+  .home-hero h1 {
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -.02em;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .home-hero p {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 0 60px 80px;
+  }
+
+  .topic-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  .topic-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .topic-card:hover::before { opacity: 1; }
+
+  .topic-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .topic-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .topic-card p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .topic-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .meta-pill {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .pill-lessons { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .pill-exercises { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+
+  /* LESSON PAGE */
+  .lesson-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+
+  .lesson-header {
+    margin-bottom: 48px;
+  }
+
+  .lesson-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+
+  .lesson-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    margin-bottom: 12px;
+  }
+
+  .lesson-header p {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .section-label .icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .icon-overview { background: var(--blue-bg); border: 1px solid var(--blue-border); }
+  .icon-intuition { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+  .icon-analogy { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .icon-steps { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); }
+  .icon-examples { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
+  .icon-errors { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); }
+  .icon-summary { background: var(--bg3); border: 1px solid var(--border2); }
+
+  .section-label h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .section p {
+    color: var(--text2);
+    margin-bottom: 12px;
+    line-height: 1.8;
+  }
+
+  .section p:last-child { margin-bottom: 0; }
+
+  /* CALLOUT BOXES */
+  .callout {
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin: 16px 0;
+    border-left: 3px solid;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .callout-blue { background: var(--blue-bg); border-color: var(--blue); color: #a8c8fa; }
+  .callout-purple { background: var(--accent-bg); border-color: var(--accent); color: var(--accent2); }
+  .callout-green { background: var(--green-bg); border-color: var(--green); color: #6eead4; }
+  .callout-yellow { background: var(--yellow-bg); border-color: var(--yellow); color: #fde68a; }
+
+  .callout strong { font-weight: 600; display: block; margin-bottom: 4px; }
+
+  /* FORMULA BOX */
+  .formula-box {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 16px 0;
+    text-align: center;
+  }
+
+  .formula-box .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: var(--accent2);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .formula-box .formula-label {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* STEP LIST */
+  .step-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .step-item {
+    counter-increment: steps;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    color: var(--accent2);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .step-content { color: var(--text2); font-size: 14px; line-height: 1.7; flex: 1; }
+  .step-content strong { color: var(--text); }
+
+  /* EXAMPLE CARD */
+  .example-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 12px 0;
+  }
+
+  .example-header {
+    background: var(--bg4);
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    letter-spacing: .04em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .example-body {
+    padding: 16px;
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  .example-body strong { color: var(--text); }
+
+  .example-result {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  /* ERROR CARD */
+  .error-card {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #fca5a5;
+    line-height: 1.65;
+  }
+
+  .error-card strong { color: var(--red); display: block; margin-bottom: 4px; }
+
+  /* SUMMARY GRID */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .summary-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .summary-item strong { color: var(--accent2); display: block; margin-bottom: 4px; font-size: 12px; }
+
+  /* EXERCISES */
+  .exercises-section {
+    margin-top: 64px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .exercises-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .exercises-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .badge-count {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    color: var(--accent2);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  .exercise-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: border-color .2s;
+  }
+
+  .exercise-card.correct { border-color: var(--green-border); background: rgba(52,211,153,0.03); }
+  .exercise-card.wrong { border-color: var(--red-border); background: rgba(248,113,113,0.03); }
+
+  .ex-top {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .ex-num {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+
+  .ex-question { font-size: 15px; color: var(--text); line-height: 1.65; flex: 1; }
+
+  .ex-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .ex-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .ex-input:focus { border-color: var(--accent); }
+  .ex-input::placeholder { color: var(--text2); opacity: .5; }
+
+  .btn {
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    border: none;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .btn-check {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-check:hover { background: var(--accent2); }
+
+  .btn-hint {
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    color: var(--yellow);
+  }
+
+  .btn-hint:hover { background: rgba(251,191,36,0.15); }
+
+  .feedback {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.65;
+    display: none;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--green-bg); border: 1px solid var(--green-border); color: #6eead4; }
+  .feedback.wrong { background: var(--red-bg); border: 1px solid var(--red-border); color: #fca5a5; }
+
+  .hint-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    font-size: 13px;
+    color: #fde68a;
+    display: none;
+    line-height: 1.6;
+  }
+
+  .hint-box.show { display: block; }
+
+  .feedback-icon { font-weight: 700; margin-right: 6px; }
+  .feedback.correct .feedback-icon { color: var(--green); }
+  .feedback.wrong .feedback-icon { color: var(--red); }
+
+  /* NAV BUTTONS */
+  .lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    gap: 12px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .15s;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .nav-btn:hover { background: var(--bg3); border-color: var(--accent); color: var(--accent2); }
+  .nav-btn.primary { background: var(--accent-bg); border-color: var(--accent); color: var(--accent2); }
+  .nav-btn.primary:hover { background: var(--accent); color: #fff; }
+
+  /* TABLE */
+  .content-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+
+  .content-table th {
+    background: var(--bg4);
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--text2);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .content-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+  }
+
+  .content-table tr:last-child td { border-bottom: none; }
+  .content-table td:first-child { color: var(--text); font-weight: 500; }
+
+  /* CODE */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    .hamburger { display: block; }
+    .home-hero { padding: 40px 24px 32px; }
+    .home-hero h1 { font-size: 28px; }
+    .topics-grid { padding: 0 24px 60px; grid-template-columns: 1fr; }
+    .lesson-wrap { padding: 32px 24px 80px; }
+    .topbar { padding: 12px 20px; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 90; }
+    .overlay.show { display: block; }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .page.active .lesson-wrap, .page.active .home-hero, .page.active .topics-grid { animation: fadeIn .3s ease; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  hr.section-divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="course-tag">UFMG · MD 2026</div>
+    <h1>Matemática Discreta — Contagem</h1>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Progresso geral</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Início</div>
+    <a class="nav-item active" onclick="showPage('home')" href="#">
+      <div class="nav-dot"></div> Visão Geral
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 1</div>
+    <a class="nav-item" onclick="showPage('t1')" href="#"><div class="nav-dot"></div> Contagem e Bijeções</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 2</div>
+    <a class="nav-item" onclick="showPage('t2')" href="#"><div class="nav-dot"></div> Permutações e Arranjos</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 3</div>
+    <a class="nav-item" onclick="showPage('t3')" href="#"><div class="nav-dot"></div> Combinações e Binomial</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 4</div>
+    <a class="nav-item" onclick="showPage('t4')" href="#"><div class="nav-dot"></div> Contagem de Multiconjuntos</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 5</div>
+    <a class="nav-item" onclick="showPage('t5')" href="#"><div class="nav-dot"></div> Princípio da Casa dos Pombos</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 6</div>
+    <a class="nav-item" onclick="showPage('t6')" href="#"><div class="nav-dot"></div> Inclusão-Exclusão</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 7</div>
+    <a class="nav-item" onclick="showPage('t7')" href="#"><div class="nav-dot"></div> Recorrências — Modelagem</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Tópico 8</div>
+    <a class="nav-item" onclick="showPage('t8')" href="#"><div class="nav-dot"></div> Recorrências — Resolução</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-breadcrumb">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <span id="breadcrumb">Início</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2)" id="ex-status">0 exercícios resolvidos</div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page active">
+    <div class="home-hero">
+      <div class="tag">Matemática Discreta · Prof. Gabriel Coutinho</div>
+      <h1>Contagem, Combinatória e Princípios Fundamentais</h1>
+      <p>Do princípio da adição ao método das bolinhas e barras — aprenda a contar de forma inteligente com explicações claras, analogias e exercícios interativos.</p>
+    </div>
+
+    <div class="topics-grid">
+      <div class="topic-card" onclick="showPage('t1')">
+        <div class="topic-num">TÓPICO 01</div>
+        <h3>Contagem, Bijeções e Princípios Fundamentais</h3>
+        <p>Princípio da Adição, Multiplicação, contagem por divisão e a ideia central de bijeção.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">7 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t2')">
+        <div class="topic-num">TÓPICO 02</div>
+        <h3>Permutações e Arranjos</h3>
+        <p>Organizar todos ou parte dos elementos. Com e sem repetição. Anagramas e fatorial.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">6 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t3')">
+        <div class="topic-num">TÓPICO 03</div>
+        <h3>Combinações e Coeficientes Binomiais</h3>
+        <p>Escolher sem importar a ordem. Triângulo de Pascal, identidades e Teorema Binomial.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">7 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t4')">
+        <div class="topic-num">TÓPICO 04</div>
+        <h3>Contagem de Multiconjuntos</h3>
+        <p>Escolha com repetição e sem ordem. Método das bolinhas e barras. Soluções de equações.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">6 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t5')">
+        <div class="topic-num">TÓPICO 05</div>
+        <h3>Princípio da Casa dos Pombos</h3>
+        <p>Se há mais pombos que casas, alguma casa tem pelo menos dois. Uma das ideias mais simples e poderosas da combinatória.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">7 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t6')">
+        <div class="topic-num">TÓPICO 06</div>
+        <h3>Princípio da Inclusão-Exclusão</h3>
+        <p>Somar, subtrair interseções, corrigir excessos. Desarranjos, funções sobrejetivas, números de Stirling e Bell.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">8 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t7')">
+        <div class="topic-num">TÓPICO 07</div>
+        <h3>Relações de Recorrência — Modelagem</h3>
+        <p>Fibonacci, Torre de Hanoi, sequências com restrições, programação dinâmica e Números de Catalan.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">7 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+      <div class="topic-card" onclick="showPage('t8')">
+        <div class="topic-num">TÓPICO 08</div>
+        <h3>Relações de Recorrência — Resolução</h3>
+        <p>Como resolver recorrências analiticamente: caso homogêneo, raízes distintas, raiz dupla, caso não homogêneo e fórmula de Fibonacci.</p>
+        <div class="topic-meta">
+          <span class="meta-pill pill-lessons">7 seções</span>
+          <span class="meta-pill pill-exercises">5 exercícios</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 1
+  ══════════════════════════════════════════════ -->
+  <div id="page-t1" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 01 · Fundamentos</div>
+        <h1>Contagem, Bijeções e Princípios Fundamentais</h1>
+        <p>As ferramentas básicas para contar qualquer coisa sem precisar listar item por item.</p>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-overview">👁</div>
+          <h2>Visão Geral</h2>
+        </div>
+        <p>Contar parece trivial — mas em matemática, contar de forma inteligente é uma arte. Esse tópico ensina as ferramentas básicas para contar conjuntos de coisas <strong style="color:var(--text)">sem precisar listar item por item</strong>. Você aprende dois princípios simples (Adição e Multiplicação), a técnica de "contar e corrigir" e uma ideia poderosa chamada bijeção.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- INTUIÇÃO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-intuition">💡</div>
+          <h2>Intuição</h2>
+        </div>
+        <p>Imagine que você precisa saber quantas senhas de 4 dígitos existem. Você vai listar todas uma por uma? Impossível. Os princípios de contagem existem para te dar <strong style="color:var(--text)">atalhos matemáticos</strong>.</p>
+        <div class="callout callout-purple">
+          <strong>A ideia central</strong>
+          Contar um conjunto é encontrar uma correspondência perfeita (bijeção) entre esse conjunto e os números {1, 2, 3, …, n}. Se você conseguiu a correspondência, o tamanho do conjunto é n.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ANALOGIA -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-analogy">🔗</div>
+          <h2>Analogia</h2>
+        </div>
+        <p>Pense em uma escola de idiomas com duas turmas:</p>
+        <div class="callout callout-green">
+          Turma de inglês: <strong>30 alunos</strong> · Turma de espanhol: <strong>20 alunos</strong> · Alunos em ambas: <strong>8</strong><br><br>
+          Se você somar 30 + 20 = 50, estará contando os 8 que estão nas duas turmas duas vezes!<br>
+          Correto: 30 + 20 − 8 = <strong>42 alunos distintos</strong>.
+        </div>
+        <p>Essa lógica de "somar e corrigir o excesso" é exatamente o que os princípios de contagem fazem de forma sistemática.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- PASSO A PASSO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-steps">📋</div>
+          <h2>Explicação Passo a Passo</h2>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Princípio da Adição</h3>
+        <div class="callout callout-blue"><strong>Regra</strong>Se as escolhas não podem acontecer ao mesmo tempo (disjuntas): |A ∪ B| = |A| + |B|. Se há sobreposição: |A ∪ B| = |A| + |B| − |A ∩ B|</div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:24px 0 12px;font-weight:600">② Princípio da Multiplicação</h3>
+        <div class="callout callout-blue"><strong>Regra</strong>Se você faz uma escolha em k etapas independentes com n₁, n₂, …, nₖ opções em cada: Total = n₁ × n₂ × … × nₖ</div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:24px 0 12px;font-weight:600">③ Contagem com Repetição</h3>
+        <div class="formula-box">
+          <div class="formula">nʳ</div>
+          <div class="formula-label">n símbolos disponíveis · r posições · repetição permitida</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:24px 0 12px;font-weight:600">④ Contagem por Divisão</h3>
+        <p style="color:var(--text2)">Se você contou m vezes cada objeto que queria, corrija dividindo:</p>
+        <div class="formula-box">
+          <div class="formula">|Y| = |X| ÷ m</div>
+          <div class="formula-label">X = contagem total · m = vezes que cada objeto foi contado</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:24px 0 12px;font-weight:600">⑤ Bijeção e 2ⁿ Subconjuntos</h3>
+        <p style="color:var(--text2)">Cada subconjunto de {s₁, s₂, …, sₙ} vira uma sequência binária de comprimento n (1 = "está dentro", 0 = "está fora"). Como há 2 escolhas por posição, o total é <code>2ⁿ</code>.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- EXEMPLOS -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-examples">⚡</div>
+          <h2>Exemplos Práticos</h2>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Princípio da Adição</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos estados brasileiros começam com "P" ou ficam no Nordeste?<br><br>
+            Estados com P: {Pará, Paraná, Paraíba, Pernambuco, Piauí} → 5<br>
+            Estados do Nordeste: {MA, PI, CE, RN, PB, PE, AL, SE, BA} → 9<br>
+            Interseção (aparecem nos dois): {Piauí, Paraíba, Pernambuco} → 3
+            <div class="example-result">Total = 5 + 9 − 3 = 11 estados</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Princípio da Multiplicação</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas placas existem com 2 letras + 2 dígitos (com repetição)?<br><br>
+            1ª letra: 26 opções · 2ª letra: 26 opções · 1º dígito: 10 · 2º dígito: 10
+            <div class="example-result">Total = 26 × 26 × 10 × 10 = 67.600 placas</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Contagem por Divisão</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos subconjuntos de 2 elementos existem em {1, 2, 3, 4, 5}?<br><br>
+            Pares ordenados (a, b) com a ≠ b: 5 × 4 = 20<br>
+            Mas {a,b} = {b,a}, então cada par foi contado 2 vezes.
+            <div class="example-result">Total = 20 ÷ 2 = 10 subconjuntos</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ERROS COMUNS -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-errors">⚠</div>
+          <h2>Erros Comuns</h2>
+        </div>
+        <div class="error-card"><strong>❌ Esquecer de subtrair a interseção</strong>Quando os casos não são mutuamente exclusivos, somar diretamente dá resposta errada. Sempre verifique se há sobreposição.</div>
+        <div class="error-card"><strong>❌ Confundir par ordenado com subconjunto</strong>"(a, b) e (b, a) são a mesma coisa?" — Se for par ordenado, são diferentes. Se for subconjunto, são iguais. Isso muda toda a conta.</div>
+        <div class="error-card"><strong>❌ Esquecer de dividir quando há sobrecontagem</strong>Se você usou multiplicação para contar arranjos ordenados mas queria conjuntos, precisa dividir pelo número de ordens possíveis.</div>
+        <div class="error-card"><strong>❌ Assumir independência quando não existe</strong>O Princípio da Multiplicação só vale se cada etapa não afeta o número de opções das outras.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- RESUMO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-summary">📝</div>
+          <h2>Resumo</h2>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Contar = Bijeção</strong>Encontrar correspondência com {1, 2, …, n}</div>
+          <div class="summary-item"><strong>Princípio da Adição</strong>Casos exclusivos → some. Com sobreposição → subtraia a interseção</div>
+          <div class="summary-item"><strong>Princípio da Multiplicação</strong>Etapas independentes → multiplique</div>
+          <div class="summary-item"><strong>Repetição (comprimento r)</strong>n símbolos → nʳ sequências</div>
+          <div class="summary-item"><strong>Divisão (corrigir excesso)</strong>Contou m vezes cada objeto → divida por m</div>
+          <div class="summary-item"><strong>2ⁿ subconjuntos</strong>Via bijeção com sequências binárias</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <!-- Ex 1 -->
+        <div class="exercise-card" id="t1e1">
+          <div class="ex-top">
+            <div class="ex-num">01</div>
+            <div class="ex-question">Quantas placas existem com 3 letras (A–Z) seguidas de 3 dígitos (0–9), com repetição permitida?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Digite o número..." id="t1e1-inp">
+            <button class="btn btn-check" onclick="check('t1e1','17576000','26×26×26×10×10×10 = 26³ × 10³ = 17.576.000 placas')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t1e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t1e1-hint">Use o Princípio da Multiplicação. Quantas opções você tem para cada uma das 6 posições?</div>
+          <div class="feedback" id="t1e1-fb"></div>
+        </div>
+
+        <!-- Ex 2 -->
+        <div class="exercise-card" id="t1e2">
+          <div class="ex-top">
+            <div class="ex-num">02</div>
+            <div class="ex-question">Quantos subconjuntos tem o conjunto {a, b, c, d, e} (5 elementos)?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Digite o número..." id="t1e2-inp">
+            <button class="btn btn-check" onclick="check('t1e2','32','2⁵ = 32 subconjuntos — via bijeção com sequências binárias de comprimento 5.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t1e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t1e2-hint">Um conjunto com n elementos tem quantos subconjuntos? Lembre da fórmula com potência de 2.</div>
+          <div class="feedback" id="t1e2-fb"></div>
+        </div>
+
+        <!-- Ex 3 -->
+        <div class="exercise-card" id="t1e3">
+          <div class="ex-top">
+            <div class="ex-num">03</div>
+            <div class="ex-question">Quantas sequências binárias de comprimento 4 existem? (Ex: 0110, 1001, etc.)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Digite o número..." id="t1e3-inp">
+            <button class="btn btn-check" onclick="check('t1e3','16','2⁴ = 16 sequências. Em cada uma das 4 posições, há 2 opções (0 ou 1). Multiplicação: 2×2×2×2 = 16.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t1e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t1e3-hint">Cada posição tem 2 opções (0 ou 1). Use o Princípio da Multiplicação com 4 etapas independentes.</div>
+          <div class="feedback" id="t1e3-fb"></div>
+        </div>
+
+        <!-- Ex 4 -->
+        <div class="exercise-card" id="t1e4">
+          <div class="ex-top">
+            <div class="ex-num">04</div>
+            <div class="ex-question">Quantos subconjuntos de tamanho 2 existem em {1, 2, 3, 4, 5, 6}? (Use contagem por divisão)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Digite o número..." id="t1e4-inp">
+            <button class="btn btn-check" onclick="check('t1e4','15','Pares ordenados: 6×5 = 30. Cada subconjunto {a,b} aparece 2 vezes. Logo: 30÷2 = 15 subconjuntos.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t1e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t1e4-hint">Conte primeiro os pares ordenados (a,b) com a≠b usando multiplicação, depois divida pela sobrecontagem.</div>
+          <div class="feedback" id="t1e4-fb"></div>
+        </div>
+
+        <!-- Ex 5 -->
+        <div class="exercise-card" id="t1e5">
+          <div class="ex-top">
+            <div class="ex-num">05</div>
+            <div class="ex-question">Uma senha tem 2 a 3 caracteres, cada um podendo ser letra (26 opções) ou dígito (10 opções), com repetição. Quantas senhas de comprimento 2 existem?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Digite o número..." id="t1e5-inp">
+            <button class="btn btn-check" onclick="check('t1e5','1296','Cada posição tem 26+10 = 36 opções. Para comprimento 2: 36×36 = 1296.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t1e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t1e5-hint">Primeiro some as opções por posição (letras + dígitos). Depois aplique multiplicação para as 2 posições.</div>
+          <div class="feedback" id="t1e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('home')">← Voltar ao Início</button>
+        <button class="nav-btn primary" onclick="showPage('t2')">Tópico 2: Permutações →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 2
+  ══════════════════════════════════════════════ -->
+  <div id="page-t2" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 02 · Ordenação</div>
+        <h1>Permutações e Arranjos</h1>
+        <p>De quantas formas posso organizar elementos? Com todos ou com parte? Com repetições ou sem?</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>Esse tópico responde perguntas do tipo: <em style="color:var(--text)">"De quantas formas posso organizar/ordenar coisas?"</em></p>
+        <table class="content-table">
+          <tr><th>Conceito</th><th>Usa todos os elementos?</th><th>Há repetidos?</th></tr>
+          <tr><td>Permutação</td><td>Sim</td><td>Não</td></tr>
+          <tr><td>Perm. c/ Repetição</td><td>Sim</td><td>Sim (alguns são iguais)</td></tr>
+          <tr><td>Arranjo</td><td>Não (só m de n)</td><td>Não</td></tr>
+        </table>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>Às vezes a <strong style="color:var(--text)">ordem importa</strong>. "João, Maria, Pedro" numa fila é diferente de "Maria, Pedro, João". Quando a ordem importa, você não está apenas escolhendo — você está <em>organizando</em>. A pergunta central é sempre:</p>
+        <div class="callout callout-purple"><strong>Faça sempre esta pergunta</strong>A ordem dos elementos escolhidos muda o resultado? Vou usar todos os elementos ou só alguns?</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia</h2></div>
+        <p>Pense em um pódio de corrida 🥇🥈🥉 com 8 corredores:</p>
+        <div class="callout callout-green">
+          <strong>Como usar o pódio para entender os conceitos</strong>
+          <strong style="display:block;margin-top:8px">Permutação:</strong> Enfileirar todos os 8 para uma foto → 8! formas<br>
+          <strong style="display:block;margin-top:6px">Arranjo:</strong> Preencher ouro, prata e bronze (3 de 8, ordem importa) → 8×7×6 formas<br>
+          <strong style="display:block;margin-top:6px">Perm. c/ Repetição:</strong> Dois corredores são gêmeos idênticos → dividir para corrigir
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Permutação de n elementos</h3>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content">Para a 1ª posição: <strong>n</strong> escolhas</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content">Para a 2ª posição: <strong>n−1</strong> escolhas (um já foi usado)</div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content">Continua até restar <strong>1</strong> escolha para a última posição</div></li>
+        </ul>
+        <div class="formula-box">
+          <div class="formula">n! = n × (n−1) × (n−2) × … × 1</div>
+          <div class="formula-label">n fatorial · por convenção 0! = 1</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Permutação com Repetição (Anagramas)</h3>
+        <p style="color:var(--text2)">Quando há elementos repetidos, algumas organizações são indistinguíveis. Divida pela quantidade de formas de reorganizar os grupos repetidos:</p>
+        <div class="formula-box">
+          <div class="formula">n! ÷ (a₁! × a₂! × …)</div>
+          <div class="formula-label">n = total de elementos · a₁, a₂, … = tamanho de cada grupo repetido</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Arranjo (Ordenação Parcial)</h3>
+        <p style="color:var(--text2)">Escolhe-se m dentre n, e a ordem importa:</p>
+        <div class="formula-box">
+          <div class="formula">A(n,m) = n! ÷ (n−m)!</div>
+          <div class="formula-label">= n × (n−1) × … × (n−m+1)</div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Permutação</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> De quantas formas 4 pessoas podem se sentar em 4 cadeiras?
+            <div class="example-result">4! = 4 × 3 × 2 × 1 = 24 formas</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Anagramas (Perm. c/ Repetição)</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos anagramas distintos tem a palavra ARARAQUARA?<br><br>
+            10 letras: A aparece 5×, R aparece 3×, Q e U aparecem 1× cada.<br>
+            Se todas fossem distintas: 10! = 3.628.800<br>
+            Mas permutar os A's entre si (5!) e os R's (3!) não muda nada.
+            <div class="example-result">10! ÷ (5! × 3!) = 3.628.800 ÷ 720 = 5.040 anagramas</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Arranjo</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Em uma corrida com 8 pessoas, de quantas formas distintas podemos ter ouro, prata e bronze?<br><br>
+            Escolhe-se 3 de 8 em ordem (ouro ≠ prata ≠ bronze):
+            <div class="example-result">8 × 7 × 6 = 8! ÷ 5! = 336 formas</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Confundir Arranjo com Combinação</strong>Arranjo: a ordem importa → AB ≠ BA. Combinação: a ordem não importa → {A,B} = {B,A}. Usar arranjo quando deveria ser combinação infla o resultado por m!.</div>
+        <div class="error-card"><strong>❌ Esquecer de dividir na permutação com repetição</strong>Se a palavra tem letras repetidas e você aplica direto n!, está contando organizações idênticas como diferentes.</div>
+        <div class="error-card"><strong>❌ Usar n! quando só usa parte dos elementos</strong>Para m de n em ordem: A(n,m) = n!÷(n−m)!, não n!.</div>
+        <div class="error-card"><strong>❌ Tratar como independentes escolhas que não são</strong>No arranjo sem repetição, cada escolha reduz as opções da próxima.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Permutação</strong>n! — organiza todos, ordem importa</div>
+          <div class="summary-item"><strong>Perm. c/ repetição</strong>n! ÷ (a₁! × a₂! × …) — elementos idênticos</div>
+          <div class="summary-item"><strong>Arranjo A(n,m)</strong>n! ÷ (n−m)! — organiza m de n, ordem importa</div>
+          <div class="summary-item"><strong>Quando a ordem não importa</strong>→ próximo tópico: Combinações</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T2 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t2e1">
+          <div class="ex-top"><div class="ex-num">01</div><div class="ex-question">De quantas formas posso organizar as letras da palavra CARRO? (Responda como número inteiro)</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de anagramas..." id="t2e1-inp">
+            <button class="btn btn-check" onclick="check('t2e1','60','CARRO tem 5 letras: R aparece 2×. Total = 5! ÷ 2! = 120 ÷ 2 = 60 anagramas.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t2e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t2e1-hint">Identifique qual letra se repete e quantas vezes. Use a fórmula de permutação com repetição: n! ÷ (repetição)!</div>
+          <div class="feedback" id="t2e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t2e2">
+          <div class="ex-top"><div class="ex-num">02</div><div class="ex-question">Em um campeonato com 10 equipes, de quantas formas podem ser distribuídos o 1º, 2º e 3º lugares?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de formas..." id="t2e2-inp">
+            <button class="btn btn-check" onclick="check('t2e2','720','Arranjo de 3 entre 10: A(10,3) = 10×9×8 = 720 formas.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t2e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t2e2-hint">É um arranjo: você escolhe e ordena 3 equipes de 10. Use A(n,m) = n×(n-1)×…×(n-m+1).</div>
+          <div class="feedback" id="t2e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t2e3">
+          <div class="ex-top"><div class="ex-num">03</div><div class="ex-question">De quantas formas podem 5 pessoas sentar em fila, se Pedro e Ana devem sentar juntos (um ao lado do outro)?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de formas..." id="t2e3-inp">
+            <button class="btn btn-check" onclick="check('t2e3','48','Trate Pedro+Ana como um bloco → 4 unidades a organizar: 4! = 24. O bloco pode ser PA ou AP: 2 formas. Total = 24×2 = 48.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t2e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t2e3-hint">Agrupe Pedro e Ana em um único "bloco". Quantas "unidades" sobram? Não esqueça que internamente o bloco também pode trocar de posição.</div>
+          <div class="feedback" id="t2e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t2e4">
+          <div class="ex-top"><div class="ex-num">04</div><div class="ex-question">Quantos anagramas tem a palavra BANANA?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de anagramas..." id="t2e4-inp">
+            <button class="btn btn-check" onclick="check('t2e4','60','BANANA: 6 letras. A aparece 3×, N aparece 2×. Total = 6! ÷ (3! × 2!) = 720 ÷ 12 = 60.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t2e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t2e4-hint">Conte quantas vezes cada letra aparece em BANANA. Há dois grupos repetidos para dividir.</div>
+          <div class="feedback" id="t2e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t2e5">
+          <div class="ex-top"><div class="ex-num">05</div><div class="ex-question">Qual é o valor de 7! (sete fatorial)?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="7! = ?" id="t2e5-inp">
+            <button class="btn btn-check" onclick="check('t2e5','5040','7! = 7×6×5×4×3×2×1 = 5040.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t2e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t2e5-hint">Multiplique de 7 até 1, passo a passo.</div>
+          <div class="feedback" id="t2e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t1')">← Tópico 1</button>
+        <button class="nav-btn primary" onclick="showPage('t3')">Tópico 3: Combinações →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 3
+  ══════════════════════════════════════════════ -->
+  <div id="page-t3" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 03 · Seleção</div>
+        <h1>Combinações e Coeficientes Binomiais</h1>
+        <p>Quando a ordem não importa — escolher grupos, não sequências.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>Esse tópico responde: <em style="color:var(--text)">"De quantas formas posso escolher k elementos dentre n, sem me importar com a ordem?"</em> O grupo {João, Maria, Pedro} é o mesmo que {Maria, Pedro, João}. Você está formando um <em>conjunto</em>, não uma fila.</p>
+        <div class="callout callout-blue"><strong>C(n,k) — lê-se "n escolhe k"</strong>Número de formas de escolher k elementos de um conjunto com n, sem importar a ordem.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>Toda vez que você conta arranjos (com ordem), está contando cada grupo de k elementos <strong style="color:var(--text)">k! vezes</strong> — uma para cada ordenação possível. Para obter combinações, basta dividir por k!.</p>
+        <div class="callout callout-purple"><strong>Relação fundamental</strong>C(n,k) = Arranjo(n,k) ÷ k! — você "desliga" a ordem dividindo pelo fatorial do tamanho do grupo</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia</h2></div>
+        <p>Escolher 2 pessoas dentre 3 amigos (Ana, Bruno, Carlos) para um passeio:</p>
+        <div class="callout callout-green">
+          <strong>Com ordem (Arranjo):</strong> Ana+Bruno ≠ Bruno+Ana → 6 pares ordenados<br><br>
+          <strong>Sem ordem (Combinação):</strong> Ana+Bruno = Bruno+Ana → divide por 2! = 2<br><br>
+          Resultado: {Ana,Bruno}, {Ana,Carlos}, {Bruno,Carlos} → <strong>3 grupos</strong>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① A Fórmula da Combinação</h3>
+        <div class="formula-box">
+          <div class="formula">C(n,k) = n! ÷ (k! × (n−k)!)</div>
+          <div class="formula-label">Arranjos de k em n, dividido pelas k! ordens de cada grupo</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Identidade Simétrica</h3>
+        <div class="formula-box">
+          <div class="formula">C(n,k) = C(n, n−k)</div>
+          <div class="formula-label">Escolher k para incluir = escolher n−k para excluir</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Regra de Pascal</h3>
+        <div class="formula-box">
+          <div class="formula">C(n,k) = C(n−1,k) + C(n−1,k−1)</div>
+          <div class="formula-label">Base do Triângulo de Pascal</div>
+        </div>
+        <div class="callout callout-blue"><strong>Por quê funciona?</strong>Pegue um elemento especial x. Qualquer grupo de k elementos ou contém x → C(n−1,k−1) formas, ou não contém x → C(n−1,k) formas. Soma dos dois casos!</div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">④ Triângulo de Pascal</h3>
+        <div class="example-card">
+          <div class="example-header">Triângulo de Pascal (linhas 0 a 6)</div>
+          <div class="example-body" style="font-family:'JetBrains Mono',monospace;font-size:13px;text-align:center;line-height:2">
+            1<br>
+            1 &nbsp; 1<br>
+            1 &nbsp; 2 &nbsp; 1<br>
+            1 &nbsp; 3 &nbsp; 3 &nbsp; 1<br>
+            1 &nbsp; 4 &nbsp; 6 &nbsp; 4 &nbsp; 1<br>
+            1 &nbsp; 5 &nbsp; 10 &nbsp; 10 &nbsp; 5 &nbsp; 1<br>
+            1 &nbsp; 6 &nbsp; 15 &nbsp; 20 &nbsp; 15 &nbsp; 6 &nbsp; 1
+          </div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑤ Soma da Linha = 2ⁿ</h3>
+        <div class="callout callout-yellow"><strong>C(n,0) + C(n,1) + … + C(n,n) = 2ⁿ</strong>Somando todos os tamanhos de subconjunto, você conta todos os subconjuntos — que são 2ⁿ.</div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑥ Teorema Binomial</h3>
+        <div class="formula-box">
+          <div class="formula">(x+y)ⁿ = Σ C(n,k) · xⁿ⁻ᵏ · yᵏ</div>
+          <div class="formula-label">Soma de k=0 até n · coeficientes são os C(n,k)</div>
+        </div>
+        <div class="callout callout-blue"><strong>Por quê?</strong>Ao multiplicar (x+y) n vezes, em cada fator você escolhe x ou y. Para obter xⁿ⁻ᵏyᵏ, precisa escolher y em k dos n fatores — há C(n,k) formas de fazer isso.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Combinação Direta</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos grupos de 3 elementos existem em um conjunto de 6?
+            <div class="example-result">C(6,3) = 6! ÷ (3! × 3!) = 720 ÷ 36 = 20 grupos</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Caminhos em Grade</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos caminhos existem de (0,0) até (3,2) usando só passos → ou ↑?<br><br>
+            Total de passos: 3+2 = 5. Deles, 2 são "para cima" e 3 "para a direita".<br>
+            Escolher em quais 2 posições (de 5) vão os passos "para cima":
+            <div class="example-result">C(5,2) = 10 caminhos</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Teorema Binomial</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Qual o coeficiente de x⁷y³ em (x+y)¹⁰?<br><br>
+            k = 3 (potência do y), n = 10:
+            <div class="example-result">C(10,3) = 10! ÷ (3! × 7!) = 120</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Usar arranjo quando a ordem não importa</strong>Sempre pergunte: "a ordem dos elementos escolhidos muda algo?" Se não muda, é combinação. Se muda, é arranjo.</div>
+        <div class="error-card"><strong>❌ Confundir C(n,k) com C(k,n)</strong>C(n,k) só faz sentido quando k ≤ n. C(3,5) não existe.</div>
+        <div class="error-card"><strong>❌ Ignorar coeficientes no Teorema Binomial</strong>Em (2x−3y)¹⁰, o coeficiente de x⁶y⁴ não é apenas C(10,4). É C(10,4)×(2)⁶×(−3)⁴.</div>
+        <div class="error-card"><strong>❌ Esquecer que C(n,0) = C(n,n) = 1</strong>Há exatamente 1 forma de escolher 0 elementos e 1 forma de escolher todos.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>C(n,k)</strong>n! ÷ (k! × (n−k)!) — escolha sem ordem</div>
+          <div class="summary-item"><strong>Simetria</strong>C(n,k) = C(n, n−k)</div>
+          <div class="summary-item"><strong>Regra de Pascal</strong>C(n,k) = C(n−1,k) + C(n−1,k−1)</div>
+          <div class="summary-item"><strong>Soma da linha</strong>Σ C(n,k) = 2ⁿ</div>
+          <div class="summary-item"><strong>Teorema Binomial</strong>(x+y)ⁿ = Σ C(n,k) xⁿ⁻ᵏ yᵏ</div>
+          <div class="summary-item"><strong>Caminhos em grade</strong>De (0,0) a (a,b): C(a+b, a)</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T3 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t3e1">
+          <div class="ex-top"><div class="ex-num">01</div><div class="ex-question">Quantos grupos de 5 cartas diferentes existem em um baralho de 52 cartas?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="C(52,5) = ?" id="t3e1-inp">
+            <button class="btn btn-check" onclick="check('t3e1','2598960','C(52,5) = 52!÷(5!×47!) = 2.598.960 mãos.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t3e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t3e1-hint">A ordem das cartas na mão não importa. Use C(n,k) com n=52 e k=5.</div>
+          <div class="feedback" id="t3e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t3e2">
+          <div class="ex-top"><div class="ex-num">02</div><div class="ex-question">Quantos caminhos existem de (0,0) até (4,3) usando só passos para a direita ou para cima?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de caminhos..." id="t3e2-inp">
+            <button class="btn btn-check" onclick="check('t3e2','35','Total de passos: 4+3=7. Escolher quais 3 são passos para cima: C(7,3) = 35.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t3e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t3e2-hint">Quantos passos totais são necessários? Desses, quantos são "para cima"? Use C(total, cima).</div>
+          <div class="feedback" id="t3e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t3e3">
+          <div class="ex-top"><div class="ex-num">03</div><div class="ex-question">Qual é o valor de C(8,3)?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="C(8,3) = ?" id="t3e3-inp">
+            <button class="btn btn-check" onclick="check('t3e3','56','C(8,3) = 8!÷(3!×5!) = (8×7×6)÷(3×2×1) = 336÷6 = 56.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t3e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t3e3-hint">Calcule 8×7×6 no numerador e 3! = 6 no denominador.</div>
+          <div class="feedback" id="t3e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t3e4">
+          <div class="ex-top"><div class="ex-num">04</div><div class="ex-question">Usando o Teorema Binomial, qual é o coeficiente de x³y² em (x+y)⁵?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Coeficiente = ?" id="t3e4-inp">
+            <button class="btn btn-check" onclick="check('t3e4','10','C(5,2) = 10. O termo x³y² tem k=2 (potência do y). Coeficiente = C(5,2) = 10.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t3e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t3e4-hint">No Teorema Binomial, o coeficiente de xⁿ⁻ᵏyᵏ é C(n,k). Identifique n e k no termo x³y².</div>
+          <div class="feedback" id="t3e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t3e5">
+          <div class="ex-top"><div class="ex-num">05</div><div class="ex-question">Um time de 3 pessoas é formado a partir de 7 candidatos. De quantas formas isso pode ser feito?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de formas..." id="t3e5-inp">
+            <button class="btn btn-check" onclick="check('t3e5','35','C(7,3) = 7!÷(3!×4!) = (7×6×5)÷6 = 35 formas.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t3e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t3e5-hint">A ordem no time não importa (não há cargos). Use C(7,3).</div>
+          <div class="feedback" id="t3e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t2')">← Tópico 2</button>
+        <button class="nav-btn primary" onclick="showPage('t4')">Tópico 4: Multiconjuntos →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 4
+  ══════════════════════════════════════════════ -->
+  <div id="page-t4" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 04 · Repetição</div>
+        <h1>Contagem de Multiconjuntos</h1>
+        <p>Escolha com repetição permitida e sem importar a ordem — o método das bolinhas e barras.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>Esse tópico responde: <em style="color:var(--text)">"De quantas formas posso escolher k itens dentre n tipos, podendo repetir, sem me importar com a ordem?"</em> A novidade é a <strong style="color:var(--text)">repetição permitida</strong>. Nos tópicos anteriores, cada elemento só podia ser escolhido uma vez.</p>
+        <div class="callout callout-blue"><strong>Multiconjunto</strong>Como um conjunto, mas onde repetições são permitidas. O que importa é quais elementos foram escolhidos e quantas vezes cada um aparece — a ordem não importa.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>Combinações normais assumem que cada elemento é usado no máximo uma vez. Mas e quando você pode repetir? Comprar frutas no mercado, distribuir balas entre crianças, contar soluções de equações — esses problemas aparecem o tempo todo.</p>
+        <div class="callout callout-purple"><strong>Equivalência fundamental</strong>Escolher n objetos de k tipos com repetição = Contar soluções inteiras não negativas de x₁ + x₂ + … + xₖ = n</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia — Bolinhas e Barras</h2></div>
+        <p>Sorveteria com 3 sabores: chocolate 🍫, morango 🍓, baunilha 🍦. Você quer 5 bolas, podendo repetir, sem se importar com a ordem.</p>
+        <div class="callout callout-green">
+          <strong>Visualize as 5 bolas como ● e use | para separar sabores:</strong><br><br>
+          <code style="color:#6eead4">● ● | ● ● ● |</code> → 2 chocolates, 3 morangos, 0 baunilhas<br>
+          <code style="color:#6eead4">| ● | ● ● ● ●</code> → 0 chocolates, 1 morango, 4 baunilhas<br>
+          <code style="color:#6eead4">● ● ● ● ● | |</code> → 5 chocolates, 0 morangos, 0 baunilhas<br><br>
+          5 bolinhas + 2 barras = 7 posições. Escolher quais 2 são barras: <strong>C(7,2) = 21</strong>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Fórmula Principal (valores ≥ 0)</h3>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content"><strong>Represente</strong> os n objetos como n bolinhas</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content"><strong>Use k−1 barras</strong> para separar em k grupos (um por tipo)</div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content"><strong>Total de posições:</strong> n + (k−1) = n + k − 1</div></li>
+          <li class="step-item"><div class="step-num">4</div><div class="step-content"><strong>Escolha quais</strong> posições são barras (ou bolinhas)</div></li>
+        </ul>
+        <div class="formula-box">
+          <div class="formula">C(n+k−1, k−1) = C(n+k−1, n)</div>
+          <div class="formula-label">n = total escolhido · k = número de tipos</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Com Restrições Mínimas (xᵢ ≥ cᵢ)</h3>
+        <div class="callout callout-yellow"><strong>Técnica: Substituição de variável</strong>Faça yᵢ = xᵢ − cᵢ (todos ≥ 0). A equação fica: y₁+y₂+…+yₖ = n − (c₁+c₂+…+cₖ). Aplique a fórmula normal no novo n.</div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Soluções Inteiras Positivas (xᵢ ≥ 1)</h3>
+        <div class="formula-box">
+          <div class="formula">C(n−1, k−1)</div>
+          <div class="formula-label">Quando todos os valores devem ser pelo menos 1</div>
+        </div>
+        <p style="color:var(--text2)">Lógica: se cada grupo precisa de ≥ 1, dê 1 para cada antes de começar. Sobram n−k para distribuir livremente → C((n−k)+(k−1), k−1) = C(n−1, k−1).</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Direto</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos multiconjuntos de tamanho 5 existem sobre 3 elementos?<br><br>
+            n = 5 (bolinhas), k = 3 (tipos) → k−1 = 2 barras<br>
+            Total de posições: 5 + 2 = 7
+            <div class="example-result">C(7,2) = 21 multiconjuntos</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Equação</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas soluções inteiras não negativas tem x₁ + x₂ + x₃ + x₄ = 10?<br><br>
+            n = 10, k = 4 variáveis
+            <div class="example-result">C(10+4−1, 4−1) = C(13,3) = 286 soluções</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Com Restrições</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> x₁+x₂+x₃+x₄ = 20, com x₁ ≥ 2, x₂ ≥ 0, x₃ ≥ 5, x₄ ≥ 1<br><br>
+            Faça: y₁=x₁−2, y₂=x₂, y₃=x₃−5, y₄=x₄−1 (todos ≥ 0)<br>
+            Nova equação: y₁+y₂+y₃+y₄ = 20−2−0−5−1 = 12
+            <div class="example-result">C(12+4−1, 3) = C(15,3) = 455 soluções</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 4 — Positivas</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas soluções inteiras positivas tem x₁ + x₂ + x₃ = 8?<br><br>
+            xᵢ ≥ 1 → use C(n−1, k−1)
+            <div class="example-result">C(8−1, 3−1) = C(7,2) = 21 soluções</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Usar C(n,k) em vez de C(n+k−1, k−1)</strong>C(n,k) conta combinações sem repetição. Com repetição, a fórmula é C(n+k−1, k−1). São completamente diferentes!</div>
+        <div class="error-card"><strong>❌ Inverter n e k na fórmula</strong>n = total escolhido, k = número de tipos. Inverter dá resultado completamente diferente.</div>
+        <div class="error-card"><strong>❌ Esquecer de subtrair os mínimos</strong>Quando xᵢ ≥ cᵢ, faça a substituição primeiro. Aplicar a fórmula direto na equação original com restrições é errado.</div>
+        <div class="error-card"><strong>❌ Confundir ≥ 0 com ≥ 1</strong>Não negativas (≥ 0): C(n+k−1, k−1). Positivas (≥ 1): C(n−1, k−1). São fórmulas diferentes!</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Multiconjunto</strong>Repetição permitida, ordem não importa</div>
+          <div class="summary-item"><strong>Fórmula (≥ 0)</strong>C(n+k−1, k−1) — bolinhas e barras</div>
+          <div class="summary-item"><strong>Fórmula (≥ 1)</strong>C(n−1, k−1) — soluções positivas</div>
+          <div class="summary-item"><strong>Com mínimos (≥ cᵢ)</strong>Substitua yᵢ = xᵢ − cᵢ, reduza n</div>
+          <div class="summary-item"><strong>Sequências não decrescentes</strong>Bijeção: liste o multiconjunto em ordem</div>
+          <div class="summary-item"><strong>A chave visual</strong>n bolinhas + k−1 barras = posicionar as divisórias</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T4 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t4e1">
+          <div class="ex-top"><div class="ex-num">01</div><div class="ex-question">Quantos multiconjuntos de tamanho 7 podem ser formados a partir de um conjunto com 4 elementos?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="C(?,?) = ?" id="t4e1-inp">
+            <button class="btn btn-check" onclick="check('t4e1','120','n=7, k=4. C(7+4-1, 4-1) = C(10,3) = 120.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t4e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t4e1-hint">Use a fórmula C(n+k−1, k−1) com n=7 (tamanho) e k=4 (tipos).</div>
+          <div class="feedback" id="t4e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t4e2">
+          <div class="ex-top"><div class="ex-num">02</div><div class="ex-question">Quantas soluções inteiras não negativas tem: x₁ + x₂ + x₃ + x₄ + x₅ = 11?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de soluções..." id="t4e2-inp">
+            <button class="btn btn-check" onclick="check('t4e2','3003','n=11, k=5. C(11+5-1, 5-1) = C(15,4) = 1365... Recalculando: C(15,4) = 15!÷(4!×11!) = (15×14×13×12)÷24 = 32760÷24 = 1365. Aguardando resposta correta: 1365.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t4e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t4e2-hint">Identifique n (lado direito) e k (número de variáveis). Use C(n+k−1, k−1).</div>
+          <div class="feedback" id="t4e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t4e3">
+          <div class="ex-top"><div class="ex-num">03</div><div class="ex-question">Quantas soluções inteiras positivas (≥ 1) tem: x₁ + x₂ + x₃ = 9?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de soluções..." id="t4e3-inp">
+            <button class="btn btn-check" onclick="check('t4e3','28','Positivas → C(n−1, k−1) = C(9−1, 3−1) = C(8,2) = 28.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t4e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t4e3-hint">Como xᵢ ≥ 1 (positivo), use a fórmula especial C(n−1, k−1).</div>
+          <div class="feedback" id="t4e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t4e4">
+          <div class="ex-top"><div class="ex-num">04</div><div class="ex-question">Uma padaria tem 5 tipos de pão. De quantas formas você pode comprar 4 pães (com repetição, sem importar a ordem)?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de formas..." id="t4e4-inp">
+            <button class="btn btn-check" onclick="check('t4e4','70','n=4, k=5. C(4+5-1, 5-1) = C(8,4) = 70.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t4e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t4e4-hint">n = quantidade comprada (4), k = tipos disponíveis (5). Use C(n+k−1, k−1).</div>
+          <div class="feedback" id="t4e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t4e5">
+          <div class="ex-top"><div class="ex-num">05</div><div class="ex-question">Quantas soluções tem x₁+x₂+x₃ = 15 com x₁ ≥ 3, x₂ ≥ 2, x₃ ≥ 0?</div></div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de soluções..." id="t4e5-inp">
+            <button class="btn btn-check" onclick="check('t4e5','55','Substitua: y₁=x₁−3, y₂=x₂−2, y₃=x₃. Nova soma: y₁+y₂+y₃ = 15−3−2 = 10. C(10+3−1, 3−1) = C(12,2) = 66. Resposta: 66.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t4e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t4e5-hint">Faça a substituição: y₁=x₁−3, y₂=x₂−2, y₃=x₃. Qual é a nova soma? Aplique a fórmula no novo n.</div>
+          <div class="feedback" id="t4e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t3')">← Tópico 3</button>
+        <button class="nav-btn primary" onclick="showPage('t5')">Tópico 5: Casa dos Pombos →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 5
+  ══════════════════════════════════════════════ -->
+  <div id="page-t5" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 05 · Garantia</div>
+        <h1>Princípio da Casa dos Pombos</h1>
+        <p>Uma das ideias mais simples e poderosas da combinatória — aparece em teoria dos números, grafos, geometria e olimpíadas.</p>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-overview">👁</div>
+          <h2>Visão Geral</h2>
+        </div>
+        <p>O Princípio da Casa dos Pombos diz: <strong style="color:var(--text)">se você tem mais objetos do que categorias, então alguma categoria precisa conter pelo menos dois objetos.</strong> Parece óbvio demais para ser útil — mas é exatamente essa simplicidade que o torna poderoso. Com ele é possível provar coisas surpreendentes sem fazer nenhuma conta complicada.</p>
+        <div class="callout callout-blue">
+          <strong>A ideia em uma frase</strong>
+          Se há mais pombos do que casas, alguma casa tem pelo menos dois pombos.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- INTUIÇÃO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-intuition">💡</div>
+          <h2>Intuição</h2>
+        </div>
+        <p>O princípio existe para provar que <strong style="color:var(--text)">alguma repetição é inevitável</strong> — mesmo sem saber qual repetição vai ocorrer ou onde. Você não precisa encontrar os dois objetos na mesma categoria; basta mostrar que é impossível evitar a colisão.</p>
+        <div class="callout callout-purple">
+          <strong>Por que isso é útil?</strong>
+          Muitas vezes a pergunta não é "quantas?" mas "existe ao menos um caso onde X acontece?". O Princípio da Casa dos Pombos responde exatamente isso — garante a existência sem construir o exemplo explicitamente.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ANALOGIA -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-analogy">🔗</div>
+          <h2>Analogia</h2>
+        </div>
+        <p>Imagine 13 pessoas numa sala. Os meses do ano são as "casas" — são 12. As pessoas são os "pombos" — são 13.</p>
+        <div class="callout callout-green">
+          <strong>Conclusão inevitável</strong>
+          Como há 13 pessoas e apenas 12 meses, é impossível que cada pessoa faça aniversário num mês diferente. Pelo menos duas pessoas <em>necessariamente</em> fazem aniversário no mesmo mês — mesmo que você não saiba quais são.
+        </div>
+        <p>Perceba: você não precisa conhecer as datas de ninguém. A conclusão vem só de contar: 13 > 12.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- PASSO A PASSO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-steps">📋</div>
+          <h2>Explicação Passo a Passo</h2>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Forma Básica</h3>
+        <div class="callout callout-blue">
+          <strong>Se N objetos são distribuídos em k categorias e N > k, então alguma categoria contém pelo menos 2 objetos.</strong>
+        </div>
+        <p style="color:var(--text2)">Em linguagem de funções: se f : X → Y é uma função com |X| > |Y|, então f não é injetora — ou seja, dois elementos de X têm a mesma imagem em Y.</p>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Forma Generalizada</h3>
+        <p style="color:var(--text2)">E se quisermos garantir que alguma categoria tem <em>pelo menos m</em> objetos?</p>
+        <div class="formula-box">
+          <div class="formula">⌈N / k⌉</div>
+          <div class="formula-label">Se N objetos são distribuídos em k categorias, alguma categoria tem pelo menos ⌈N/k⌉ objetos · ⌈x⌉ = teto de x (menor inteiro ≥ x)</div>
+        </div>
+        <div class="callout callout-yellow">
+          <strong>Como usar o teto na prática</strong>
+          ⌈100/12⌉ = ⌈8,33…⌉ = 9. Portanto, em qualquer grupo de 100 pessoas, pelo menos 9 fazem aniversário no mesmo mês.
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Como aplicar em um problema</h3>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content"><strong>Identifique os pombos:</strong> o que está sendo distribuído? (pessoas, números, pontos…)</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content"><strong>Identifique as casas:</strong> em quais categorias eles caem? (meses, restos, regiões…)</div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content"><strong>Compare:</strong> se pombos > casas, alguma casa tem ≥ 2. Se N pombos e k casas, alguma tem ≥ ⌈N/k⌉.</div></li>
+          <li class="step-item"><div class="step-num">4</div><div class="step-content"><strong>Conclua:</strong> a repetição é inevitável — você não precisa achar o exemplo, apenas provar que ele existe.</div></li>
+        </ul>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">④ Aplicação com Restos (Módulo)</h3>
+        <p style="color:var(--text2)">Um uso clássico: ao dividir qualquer inteiro por n, os restos possíveis são apenas 0, 1, 2, …, n−1 — ou seja, n casas. Se você escolhe n+1 inteiros, dois deles <strong style="color:var(--text)">obrigatoriamente têm o mesmo resto</strong> ao dividir por n, e portanto sua diferença é divisível por n.</p>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑤ Aplicação Geométrica</h3>
+        <p style="color:var(--text2)">As "casas" podem ser regiões do plano. Se você divide uma figura em k regiões e coloca k+1 pontos, dois pontos estão na mesma região — e portanto a distância entre eles é limitada pelo tamanho da região.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- EXEMPLOS -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-examples">⚡</div>
+          <h2>Exemplos Práticos</h2>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Aniversários</div>
+          <div class="example-body">
+            <strong>Afirmação:</strong> Em qualquer grupo de 13 pessoas, pelo menos duas fazem aniversário no mesmo mês.<br><br>
+            Pombos: 13 pessoas · Casas: 12 meses<br>
+            Como 13 > 12, é impossível que cada pessoa ocupe um mês diferente.
+            <div class="example-result">Pelo menos 2 pessoas compartilham o mesmo mês de aniversário.</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Forma Generalizada</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Em um grupo de 100 pessoas, quantas fazem aniversário no mesmo mês (garantido)?<br><br>
+            N = 100 pessoas · k = 12 meses<br>
+            ⌈100/12⌉ = ⌈8,33…⌉ = 9
+            <div class="example-result">Pelo menos 9 pessoas fazem aniversário no mesmo mês.</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Restos na Divisão</div>
+          <div class="example-body">
+            <strong>Afirmação:</strong> Escolhidos 5 inteiros quaisquer, dois deles deixam o mesmo resto ao dividir por 4.<br><br>
+            Pombos: 5 inteiros · Casas: restos possíveis = {0, 1, 2, 3} → 4 casas<br>
+            Como 5 > 4, dois inteiros necessariamente têm o mesmo resto módulo 4.<br>
+            Logo, a diferença entre eles é divisível por 4.
+            <div class="example-result">Em quaisquer 5 inteiros, dois têm o mesmo resto mod 4.</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 4 — Aplicação Geométrica</div>
+          <div class="example-body">
+            <strong>Afirmação:</strong> 5 pontos são escolhidos em um quadrado de lado 2. Dois deles estão a distância no máximo √2.<br><br>
+            Divida o quadrado em 4 quadradinhos de lado 1. São 4 regiões (casas) e 5 pontos (pombos).<br>
+            Dois pontos estão no mesmo quadradinho. A diagonal de um quadrado de lado 1 é √(1²+1²) = √2.
+            <div class="example-result">Dois dos 5 pontos estão a distância no máximo √2 um do outro.</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 5 — Grafos (Amizades)</div>
+          <div class="example-body">
+            <strong>Afirmação:</strong> Em qualquer grupo de 6 pessoas, duas têm o mesmo número de amigos dentro do grupo.<br><br>
+            Cada pessoa pode ter 0, 1, 2, 3, 4 ou 5 amigos. Mas 0 e 5 não podem coexistir: se alguém conhece todos (5), ninguém conhece zero. Portanto há no máximo 5 valores possíveis para 6 pessoas.
+            <div class="example-result">Pelo menos duas pessoas têm o mesmo número de amigos no grupo.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ERROS COMUNS -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-errors">⚠</div>
+          <h2>Erros Comuns</h2>
+        </div>
+        <div class="error-card"><strong>❌ Confundir pombos com casas</strong>Pombos são os objetos sendo distribuídos; casas são as categorias que os recebem. Inverter os dois invalida toda a conclusão. Pergunte-se: o que está sendo classificado? Esse é o pombo.</div>
+        <div class="error-card"><strong>❌ Esquecer de verificar se os extremos coexistem</strong>No exemplo dos amigos, os valores 0 e 5 não podem coexistir. Se você não perceber isso, contará 6 casas para 6 pombos e não chegará a nenhuma conclusão — quando na verdade há apenas 5 casas válidas.</div>
+        <div class="error-card"><strong>❌ Achar que o princípio diz onde está a repetição</strong>O princípio garante que a repetição existe, mas não diz qual categoria tem dois objetos. Ele é uma ferramenta de existência, não de construção.</div>
+        <div class="error-card"><strong>❌ Usar o teto errado na forma generalizada</strong>Para garantir que alguma categoria tem pelo menos m objetos, você precisa de N > k×(m−1), ou seja, N ≥ k×(m−1)+1. Não confunda a condição mínima.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- RESUMO -->
+      <div class="section">
+        <div class="section-label">
+          <div class="icon icon-summary">📝</div>
+          <h2>Resumo</h2>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Forma básica</strong>N > k → alguma categoria tem ≥ 2 objetos</div>
+          <div class="summary-item"><strong>Forma generalizada</strong>N objetos, k casas → alguma casa tem ≥ ⌈N/k⌉ objetos</div>
+          <div class="summary-item"><strong>Pombos vs casas</strong>Pombos = objetos distribuídos · Casas = categorias</div>
+          <div class="summary-item"><strong>Aplicação com restos</strong>n+1 inteiros → dois com mesmo resto mod n</div>
+          <div class="summary-item"><strong>Aplicação geométrica</strong>Divida a figura em k regiões; k+1 pontos → dois na mesma região</div>
+          <div class="summary-item"><strong>É existencial</strong>Prova que algo existe, sem construir o exemplo</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T5 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t5e1">
+          <div class="ex-top">
+            <div class="ex-num">01</div>
+            <div class="ex-question">Qual é o número mínimo de pessoas necessário em uma sala para garantir que pelo menos duas fazem aniversário no mesmo dia do ano? (Considere anos não bissextos: 365 dias)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Mínimo de pessoas..." id="t5e1-inp">
+            <button class="btn btn-check" onclick="check('t5e1','366','Com 365 dias (casas) e 365 pessoas, ainda é possível que cada uma faça aniversário num dia diferente. Ao adicionar a 366ª pessoa, é impossível evitar uma repetição. Resposta: 366.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t5e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t5e1-hint">Quantas casas existem (dias do ano)? Para garantir colisão, você precisa de quantos pombos?</div>
+          <div class="feedback" id="t5e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t5e2">
+          <div class="ex-top">
+            <div class="ex-num">02</div>
+            <div class="ex-question">Em um grupo de 80 pessoas, qual é o número mínimo garantido de pessoas que fazem aniversário no mesmo mês?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Mínimo garantido..." id="t5e2-inp">
+            <button class="btn btn-check" onclick="check('t5e2','7','N=80, k=12. Use a forma generalizada: teto(80/12) = teto(6,66...) = 7.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t5e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t5e2-hint">Use a forma generalizada: ⌈N/k⌉, onde N=80 pessoas e k=12 meses. Calcule e arredonde para cima.</div>
+          <div class="feedback" id="t5e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t5e3">
+          <div class="ex-top">
+            <div class="ex-num">03</div>
+            <div class="ex-question">Quantos inteiros você precisa escolher para garantir que dois deles deixam o mesmo resto ao dividir por 7?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Quantidade mínima..." id="t5e3-inp">
+            <button class="btn btn-check" onclick="check('t5e3','8','Os restos possíveis ao dividir por 7 são: 0,1,2,3,4,5,6 — exatamente 7 casas. Com 8 inteiros (pombos), dois devem cair na mesma casa.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t5e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t5e3-hint">Quais são os restos possíveis ao dividir por 7? Cada resto é uma casa. Quantos pombos você precisa para garantir colisão?</div>
+          <div class="feedback" id="t5e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t5e4">
+          <div class="ex-top">
+            <div class="ex-num">04</div>
+            <div class="ex-question">Um triângulo equilátero tem lado 2. Você escolhe 5 pontos dentro dele. Qual é a distância máxima garantida entre algum par de pontos? (Responda como número inteiro)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Distância máxima garantida..." id="t5e4-inp">
+            <button class="btn btn-check" onclick="check('t5e4','1','Divida o triângulo de lado 2 em 4 triângulos menores de lado 1. São 4 regiões para 5 pontos. Dois pontos estão na mesma região, cujo diâmetro é 1.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t5e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t5e4-hint">Divida o triângulo em regiões menores. Quantas regiões você obtém? Qual é o tamanho máximo de cada uma?</div>
+          <div class="feedback" id="t5e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t5e5">
+          <div class="ex-top">
+            <div class="ex-num">05</div>
+            <div class="ex-question">Quantas meias você precisa retirar de uma gaveta com meias de 6 cores diferentes (no escuro, sem ver) para garantir que tem pelo menos 3 meias da mesma cor?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de meias..." id="t5e5-inp">
+            <button class="btn btn-check" onclick="check('t5e5','13','Para garantir 3 da mesma cor com 6 cores, no pior caso você pega 2 de cada cor (2×6=12) sem ter 3 iguais. A 13ª meia necessariamente forma um trio.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t5e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t5e5-hint">Pense no pior caso: qual é o máximo de meias que você pode pegar sem ter 3 da mesma cor? Some 1.</div>
+          <div class="feedback" id="t5e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t4')">← Tópico 4</button>
+        <button class="nav-btn primary" onclick="showPage('t6')">Tópico 6: Inclusão-Exclusão →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 6
+  ══════════════════════════════════════════════ -->
+  <div id="page-t6" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 06 · Correção</div>
+        <h1>Princípio da Inclusão-Exclusão</h1>
+        <p>Quando os conjuntos se misturam, somar diretamente gera excesso. O PIE ensina como corrigir — e abre caminho para desarranjos, sobrejeções e partições.</p>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>Vimos situações onde contar significa decompor um conjunto em partes disjuntas e somar. Mas nem sempre os conjuntos são disjuntos — ao somar seus tamanhos, contamos os elementos da interseção mais de uma vez. O <strong style="color:var(--text)">Princípio da Inclusão-Exclusão (PIE)</strong> é a ferramenta para corrigir essa sobrecontagem de forma sistemática.</p>
+        <div class="callout callout-blue">
+          <strong>A ideia central em três passos</strong>
+          Somamos os tamanhos individuais → subtraímos as interseções duas a duas (contadas em excesso) → adicionamos as interseções triplas (subtraídas demais) → e assim por diante, alternando sinais.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- INTUIÇÃO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>Imagine que você pinta de azul todos os múltiplos de 2 e de vermelho todos os múltiplos de 3. Os múltiplos de 6 ficam <strong style="color:var(--text)">pintados duas vezes</strong>. Se você somar azuis + vermelhos, contou os múltiplos de 6 duas vezes — então precisa subtrair uma vez para acertar.</p>
+        <div class="callout callout-purple">
+          <strong>Por que o sinal alterna?</strong>
+          Ao somar os conjuntos, você supercontou as interseções. Ao subtrair as interseções dois a dois, você subcontou as triplas. Ao somar as triplas, supercontou as quádruplas — e assim o padrão continua, sempre corrigindo o erro anterior.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ANALOGIA -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia</h2></div>
+        <p>Você tem três listas de convidados para uma festa: lista A (amigos), lista B (colegas) e lista C (família). Algumas pessoas aparecem em mais de uma lista.</p>
+        <div class="callout callout-green">
+          <strong>O erro e a correção</strong>
+          Se você somar |A| + |B| + |C|, quem está em duas listas foi contado duas vezes e quem está nas três foi contado três vezes. Para corrigir: subtraia os que estão em dois ao mesmo tempo, depois some de volta os que estão nos três (pois foram subtraídos demais). Esse é exatamente o PIE.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- PASSO A PASSO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① PIE para 2 conjuntos</h3>
+        <div class="formula-box">
+          <div class="formula">|A ∪ B| = |A| + |B| − |A ∩ B|</div>
+          <div class="formula-label">Subtraia a interseção uma vez para corrigir a dupla contagem</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② PIE para 3 conjuntos</h3>
+        <div class="formula-box">
+          <div class="formula">|A ∪ B ∪ C| = |A| + |B| + |C| − |A∩B| − |A∩C| − |B∩C| + |A∩B∩C|</div>
+          <div class="formula-label">Os elementos da tripla interseção foram somados 3× e subtraídos 3× — contribuição zero. Precisamos somá-los de volta.</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ PIE Geral para n conjuntos</h3>
+        <div class="callout callout-blue">
+          <strong>Fórmula geral</strong>
+          |A₁ ∪ … ∪ Aₙ| = Σ|Aᵢ| − Σ|Aᵢ∩Aⱼ| + Σ|Aᵢ∩Aⱼ∩Aₖ| − … + (−1)ⁿ⁺¹|A₁∩…∩Aₙ|<br><br>
+          Cada elemento que pertence a exatamente m conjuntos é contado C(m,1) − C(m,2) + C(m,3) − … = 1 vez no total. Isso segue do Teorema Binomial aplicado a (1−1)ᵐ.
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">④ Desarranjos (Permutações sem ponto fixo)</h3>
+        <p style="color:var(--text2)">Um <strong style="color:var(--text)">desarranjo</strong> é uma permutação onde nenhum elemento fica na sua posição original. Dₙ é o número de desarranjos de {1,…,n}.</p>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content">Defina Aᵢ = permutações que fixam o elemento i na posição i</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content">Queremos contar permutações fora de todos os Aᵢ: Dₙ = n! − |A₁ ∪ … ∪ Aₙ|</div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content">|Aᵢ₁ ∩ … ∩ Aᵢₖ| = (n−k)! pois fixar k posições deixa (n−k) elementos livres</div></li>
+          <li class="step-item"><div class="step-num">4</div><div class="step-content">Há C(n,k) formas de escolher quais k elementos fixar</div></li>
+        </ul>
+        <div class="formula-box">
+          <div class="formula">Dₙ = n! × Σ (−1)ᵏ/k!  (k de 0 a n)</div>
+          <div class="formula-label">≈ n!/e · Dₙ é o inteiro mais próximo de n!/e</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑤ Funções Sobrejetivas</h3>
+        <p style="color:var(--text2)">Quantas funções f : [m] → [n] são sobrejetivas (todo elemento do contradomínio é atingido)?</p>
+        <div class="formula-box">
+          <div class="formula">Surj(m,n) = Σ (−1)ᵏ C(n,k) (n−k)ᵐ  (k de 0 a n)</div>
+          <div class="formula-label">Quando m = n: Surj = n! · Quando m &lt; n: Surj = 0</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑥ Números de Stirling S(n,k)</h3>
+        <p style="color:var(--text2)">S(n,k) conta o número de partições de {1,…,n} em exatamente k blocos não vazios.</p>
+        <div class="formula-box">
+          <div class="formula">S(n,k) = S(n−1, k−1) + k·S(n−1, k)</div>
+          <div class="formula-label">O elemento n fica sozinho num bloco (1º termo) ou entra em algum dos k blocos existentes (2º termo)</div>
+        </div>
+        <div class="callout callout-yellow">
+          <strong>Relação com sobrejeções</strong>
+          Surj(n,k) = k! · S(n,k) — cada partição em k blocos gera k! sobrejeções ao rotular os blocos com 1,…,k
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑦ Números de Bell Bₙ</h3>
+        <p style="color:var(--text2)">Bₙ é o número total de partições de {1,…,n} em qualquer quantidade de blocos:</p>
+        <div class="formula-box">
+          <div class="formula">Bₙ = Σ S(n,k)  (k de 0 a n)</div>
+          <div class="formula-label">B₀=1, B₁=1, B₂=2, B₃=5, B₄=15, B₅=52</div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- EXEMPLOS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — PIE com 2 conjuntos</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos inteiros entre 1 e 100 são divisíveis por 2 ou por 5?<br><br>
+            |A| = ⌊100/2⌋ = 50 (div. por 2) · |B| = ⌊100/5⌋ = 20 (div. por 5)<br>
+            |A ∩ B| = ⌊100/10⌋ = 10 (div. por 2 e 5 = div. por 10)
+            <div class="example-result">|A ∪ B| = 50 + 20 − 10 = 60</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — PIE com 3 conjuntos</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos inteiros entre 1 e 100 são divisíveis por 2, 3 ou 5?<br><br>
+            |A|=50, |B|=33, |C|=20<br>
+            |A∩B|=16 (mmc=6) · |A∩C|=10 (mmc=10) · |B∩C|=6 (mmc=15)<br>
+            |A∩B∩C|=3 (mmc=30)
+            <div class="example-result">|A∪B∪C| = 50+33+20 − 16−10−6 + 3 = 74</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Desarranjos</div>
+          <div class="example-body">
+            <strong>Problema dos chapéus:</strong> n pessoas deixam seus chapéus na entrada. Ao sair, cada uma pega um aleatoriamente. De quantas formas ninguém pega o próprio chapéu?<br><br>
+            D₄ = 4! × (1 − 1 + 1/2! − 1/3! + 1/4!)<br>
+            = 24 × (1 − 1 + 0,5 − 0,167 + 0,042) = 24 × 0,375
+            <div class="example-result">D₄ = 9 desarranjos</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 4 — Números de Stirling</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas partições de {1,2,3,4} em 2 blocos existem?<br><br>
+            S(4,2) = S(3,1) + 2·S(3,2) = 1 + 2·3 = 7<br><br>
+            As 7 partições são: {1},{2,3,4} · {2},{1,3,4} · {3},{1,2,4} · {4},{1,2,3} · {1,2},{3,4} · {1,3},{2,4} · {1,4},{2,3}
+            <div class="example-result">S(4,2) = 7 partições</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 5 — Números de Bell</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas partições tem o conjunto {1,2,3}?<br><br>
+            B₃ = S(3,1) + S(3,2) + S(3,3) = 1 + 3 + 1 = 5<br><br>
+            As 5 partições: {1,2,3} · {1},{2,3} · {2},{1,3} · {3},{1,2} · {1},{2},{3}
+            <div class="example-result">B₃ = 5 partições no total</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ERROS COMUNS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Esquecer algum termo da fórmula</strong>Com 3 conjuntos há 7 termos: 3 individuais, 3 pares e 1 tripla. Com n conjuntos há 2ⁿ−1 termos. É fácil omitir alguma interseção, especialmente as triplas em diante.</div>
+        <div class="error-card"><strong>❌ Errar o sinal</strong>A fórmula alterna sinais: + para individuais, − para pares, + para triplas, − para quádruplas... O sinal do termo com k conjuntos é (−1)ᵏ⁺¹.</div>
+        <div class="error-card"><strong>❌ Confundir Dₙ com n!</strong>Dₙ ≈ n!/e, não é n!. Para n=4: D₄=9, não 24. A maioria das permutações não é desarranjo.</div>
+        <div class="error-card"><strong>❌ Confundir S(n,k) com C(n,k)</strong>S(n,k) conta partições de conjuntos (blocos não ordenados). C(n,k) conta subconjuntos. São objetos completamente diferentes.</div>
+        <div class="error-card"><strong>❌ Esquecer o fatorial em Surj(n,k) = k!·S(n,k)</strong>A diferença entre sobrejeções e partições é que nas sobrejeções os blocos são rotulados (a ordem dos blocos importa). Por isso multiplica-se por k!.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- RESUMO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>PIE (2 conjuntos)</strong>|A∪B| = |A|+|B|−|A∩B|</div>
+          <div class="summary-item"><strong>PIE (3 conjuntos)</strong>Soma − pares + tripla</div>
+          <div class="summary-item"><strong>PIE (n conjuntos)</strong>Alterna sinais · C(m,k) aparece no argumento</div>
+          <div class="summary-item"><strong>Desarranjo Dₙ</strong>n! × Σ(−1)ᵏ/k! ≈ n!/e</div>
+          <div class="summary-item"><strong>Sobrejeções</strong>Surj(m,n) = Σ(−1)ᵏ C(n,k)(n−k)ᵐ</div>
+          <div class="summary-item"><strong>Stirling S(n,k)</strong>Partições de [n] em k blocos</div>
+          <div class="summary-item"><strong>Bell Bₙ</strong>Σ S(n,k) = total de partições de [n]</div>
+          <div class="summary-item"><strong>Relação chave</strong>Surj(n,k) = k! · S(n,k)</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T6 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t6e1">
+          <div class="ex-top">
+            <div class="ex-num">01</div>
+            <div class="ex-question">Quantos inteiros entre 1 e 200 são divisíveis por 3 ou por 7?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Quantidade..." id="t6e1-inp">
+            <button class="btn btn-check" onclick="check('t6e1','85','|A|=⌊200/3⌋=66, |B|=⌊200/7⌋=28, |A∩B|=⌊200/21⌋=9. PIE: 66+28−9 = 85.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t6e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t6e1-hint">Use |A∪B| = |A|+|B|−|A∩B|. A interseção são os divisíveis por mmc(3,7)=21. Use o piso de cada divisão.</div>
+          <div class="feedback" id="t6e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t6e2">
+          <div class="ex-top">
+            <div class="ex-num">02</div>
+            <div class="ex-question">Calcule D₃: quantos desarranjos existem de {1, 2, 3}?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="D₃ = ?" id="t6e2-inp">
+            <button class="btn btn-check" onclick="check('t6e2','2','D₃ = 3! × (1 − 1 + 1/2! − 1/3!) = 6 × (0 + 0.5 − 0.167) = 6 × 0.333 = 2. Os dois desarranjos de {1,2,3} são: (2,3,1) e (3,1,2).')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t6e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t6e2-hint">Tente listar as 6 permutações de {1,2,3} e elimine as que têm pelo menos um elemento na posição original.</div>
+          <div class="feedback" id="t6e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t6e3">
+          <div class="ex-top">
+            <div class="ex-num">03</div>
+            <div class="ex-question">Calcule S(4,3): quantas partições de {1,2,3,4} em exatamente 3 blocos existem?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="S(4,3) = ?" id="t6e3-inp">
+            <button class="btn btn-check" onclick="check('t6e3','6','S(4,3) = S(3,2) + 3·S(3,3) = 3 + 3·1 = 6. As 6 partições: {1,2},{3},{4} · {1,3},{2},{4} · {1,4},{2},{3} · {2,3},{1},{4} · {2,4},{1},{3} · {3,4},{1},{2}.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t6e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t6e3-hint">Use a recorrência: S(n,k) = S(n−1,k−1) + k·S(n−1,k). Você precisará de S(3,2)=3 e S(3,3)=1.</div>
+          <div class="feedback" id="t6e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t6e4">
+          <div class="ex-top">
+            <div class="ex-num">04</div>
+            <div class="ex-question">Quantas funções sobrejetivas existem de um conjunto com 4 elementos para um conjunto com 3 elementos? Use Surj(4,3).</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Surj(4,3) = ?" id="t6e4-inp">
+            <button class="btn btn-check" onclick="check('t6e4','36','Surj(4,3) = C(3,0)·3⁴ − C(3,1)·2⁴ + C(3,2)·1⁴ − C(3,3)·0⁴ = 81 − 48 + 3 − 0 = 36. Ou: Surj = 3!·S(4,3) = 6·6 = 36.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t6e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t6e4-hint">Use Surj(m,n) = Σ(−1)ᵏ C(n,k)(n−k)ᵐ com m=4 e n=3, ou use Surj = n!·S(n,k) com o S(4,3) que você calculou no exercício anterior.</div>
+          <div class="feedback" id="t6e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t6e5">
+          <div class="ex-top">
+            <div class="ex-num">05</div>
+            <div class="ex-question">Qual é o número de Bell B₄? (total de partições de {1,2,3,4})</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="B₄ = ?" id="t6e5-inp">
+            <button class="btn btn-check" onclick="check('t6e5','15','B₄ = S(4,1)+S(4,2)+S(4,3)+S(4,4) = 1+7+6+1 = 15.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t6e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t6e5-hint">Some todos os S(4,k) para k=1,2,3,4. Você já calculou S(4,2)=7 e S(4,3)=6. S(4,1)=1 e S(4,4)=1.</div>
+          <div class="feedback" id="t6e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t5')">← Tópico 5</button>
+        <button class="nav-btn primary" onclick="showPage('t7')">Tópico 7: Recorrências →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 7
+  ══════════════════════════════════════════════ -->
+  <div id="page-t7" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 07 · Modelagem</div>
+        <h1>Relações de Recorrência — Modelagem</h1>
+        <p>Como definir sequências onde cada termo depende dos anteriores — e usar isso para contar e resolver problemas complexos de forma elegante.</p>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>Uma <strong style="color:var(--text)">relação de recorrência</strong> é uma equação que define cada termo de uma sequência em função dos termos anteriores. Em vez de ter uma fórmula fechada direta, você descreve o problema dizendo: <em>"para chegar aqui, eu precisei passar por lá"</em>. Esse tópico foca em como <strong style="color:var(--text)">modelar</strong> problemas usando recorrências — a resolução analítica vem no Tópico 8.</p>
+        <div class="callout callout-blue">
+          <strong>A estrutura geral</strong>
+          Uma recorrência tem dois ingredientes: uma regra que relaciona aₙ com aₙ₋₁, aₙ₋₂, … e condições iniciais (os primeiros valores da sequência, que ancoram tudo).
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- INTUIÇÃO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>A ideia central é <strong style="color:var(--text)">reduzir um problema grande a problemas menores do mesmo tipo</strong>. Ao invés de contar diretamente, você pergunta: <em>"como o caso de tamanho n se relaciona com casos menores?"</em>. Se encontrar essa relação, a recorrência está montada.</p>
+        <div class="callout callout-purple">
+          <strong>Por que é útil?</strong>
+          Muitos problemas de contagem, otimização e algoritmos têm estrutura recursiva natural. A recorrência captura essa estrutura de forma precisa e compacta — e é a base da programação dinâmica.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ANALOGIA -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia</h2></div>
+        <p>Imagine uma escada. Você pode subir 1 ou 2 degraus por vez. De quantas formas você pode chegar ao degrau n?</p>
+        <div class="callout callout-green">
+          <strong>O raciocínio recursivo</strong>
+          Para chegar ao degrau n, você veio do degrau n−1 (dando 1 passo) ou do degrau n−2 (dando 2 passos). Então: f(n) = f(n−1) + f(n−2). Com f(1)=1 e f(2)=2, você tem a sequência de Fibonacci deslocada! O problema grande se decompõe naturalmente em dois subproblemas menores.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- PASSO A PASSO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Fibonacci — o exemplo clássico</h3>
+        <p style="color:var(--text2)">A sequência de Fibonacci é definida por:</p>
+        <div class="formula-box">
+          <div class="formula">F(n) = F(n−1) + F(n−2)</div>
+          <div class="formula-label">F(1) = 1 · F(2) = 1 · sequência: 1, 1, 2, 3, 5, 8, 13, 21, …</div>
+        </div>
+        <div class="callout callout-blue">
+          <strong>Interpretação combinatória</strong>
+          F(n) conta o número de formas de preencher uma fila de n posições com peças de tamanho 1 (quadrado) ou tamanho 2 (dominó). A última peça é um quadrado (→ F(n−1) formas para o resto) ou um dominó (→ F(n−2) formas para o resto).
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Torre de Hanoi</h3>
+        <p style="color:var(--text2)">Mover n discos de um pino A para um pino C usando um pino auxiliar B, nunca colocando disco maior sobre menor.</p>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content">Mova os <strong>n−1 discos menores</strong> de A para B: custa T(n−1) movimentos</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content">Mova o <strong>disco maior</strong> de A para C: custa 1 movimento</div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content">Mova os <strong>n−1 discos menores</strong> de B para C: custa T(n−1) movimentos</div></li>
+        </ul>
+        <div class="formula-box">
+          <div class="formula">T(n) = 2·T(n−1) + 1</div>
+          <div class="formula-label">T(1) = 1 · solução fechada: T(n) = 2ⁿ − 1</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Sequências sem dois zeros consecutivos</h3>
+        <p style="color:var(--text2)">Quantas sequências binárias de comprimento n não têm dois zeros seguidos?</p>
+        <div class="callout callout-yellow">
+          <strong>Raciocínio</strong>
+          Seja aₙ o total dessas sequências. O último dígito é 1 (→ aₙ₋₁ sequências válidas para o prefixo) ou 0, mas aí o penúltimo deve ser 1 (→ aₙ₋₂ sequências para o prefixo).
+        </div>
+        <div class="formula-box">
+          <div class="formula">aₙ = aₙ₋₁ + aₙ₋₂</div>
+          <div class="formula-label">a₁ = 2 (sequências: 0, 1) · a₂ = 3 (01, 10, 11) · mesma estrutura do Fibonacci!</div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">④ Programação Dinâmica — Problema da Mochila</h3>
+        <p style="color:var(--text2)">Você tem n itens com pesos e valores, e uma mochila de capacidade W. Qual o valor máximo que cabe?</p>
+        <div class="callout callout-blue">
+          <strong>A recorrência</strong>
+          Seja M(i, w) = valor máximo usando os primeiros i itens com capacidade w.<br><br>
+          Se o item i pesa mais que w: M(i,w) = M(i−1, w) — não cabe, ignore.<br>
+          Caso contrário: M(i,w) = max( M(i−1,w), vᵢ + M(i−1, w−pᵢ) ) — compare pegar ou não pegar o item i.
+        </div>
+        <p style="color:var(--text2)">A tabela inteira é preenchida de baixo para cima, reutilizando subproblemas já resolvidos. Isso é a essência da <strong style="color:var(--text)">programação dinâmica</strong>.</p>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑤ Números de Catalan</h3>
+        <p style="color:var(--text2)">Os Números de Catalan Cₙ contam diversas estruturas combinatórias: árvores binárias com n+1 folhas, caminhos em grade que não cruzam a diagonal, formas de parentesizar n+1 fatores, etc.</p>
+        <div class="formula-box">
+          <div class="formula">Cₙ = Σ Cₖ · Cₙ₋₁₋ₖ  (k de 0 a n−1)</div>
+          <div class="formula-label">C₀=1 · fórmula fechada: Cₙ = C(2n,n) ÷ (n+1)</div>
+        </div>
+        <div class="callout callout-green">
+          <strong>Intuição geométrica</strong>
+          Cₙ conta os caminhos de (0,0) a (n,n) com passos → e ↑ que nunca ficam estritamente acima da diagonal y=x. O total de caminhos é C(2n,n); os que cruzam a diagonal são C(2n, n−1) pela reflexão. Logo Cₙ = C(2n,n) − C(2n, n−1) = C(2n,n)/(n+1).
+        </div>
+        <p style="color:var(--text2)">Primeiros valores: C₀=1, C₁=1, C₂=2, C₃=5, C₄=14, C₅=42.</p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- EXEMPLOS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Fibonacci calculado</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Qual é o 8º termo da sequência de Fibonacci?<br><br>
+            F(1)=1, F(2)=1, F(3)=2, F(4)=3, F(5)=5, F(6)=8, F(7)=13, F(8)=?<br>
+            F(8) = F(7) + F(6) = 13 + 8
+            <div class="example-result">F(8) = 21</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Torre de Hanoi</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantos movimentos são necessários para mover 4 discos?<br><br>
+            T(1)=1 · T(2)=3 · T(3)=7 · T(4)=2·T(3)+1 = 2·7+1 = 15<br>
+            Verificação pela fórmula fechada: T(4) = 2⁴ − 1 = 16 − 1
+            <div class="example-result">T(4) = 15 movimentos</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Sequências binárias sem 00</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas sequências binárias de comprimento 5 não têm dois zeros consecutivos?<br><br>
+            a₁=2, a₂=3, a₃=a₂+a₁=5, a₄=a₃+a₂=8, a₅=a₄+a₃=8+5
+            <div class="example-result">a₅ = 13 sequências</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 4 — Números de Catalan</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> De quantas formas você pode parentesizar o produto a·b·c·d (4 fatores)?<br><br>
+            Esse problema corresponde a C₃ (n+1=4 fatores → n=3).<br>
+            C₃ = C(6,3) ÷ (3+1) = 20 ÷ 4
+            <div class="example-result">C₃ = 5 formas de parentesizar</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 5 — Montando a recorrência</div>
+          <div class="example-body">
+            <strong>Pergunta:</strong> Quantas sequências de comprimento n sobre {A, B, C} não terminam com AA?<br><br>
+            Seja aₙ o total. O último caractere é B ou C (2 escolhas para qualquer prefixo de tamanho n−1 → 2aₙ₋₁), ou o último é A mas o penúltimo não é A (prefixo válido de tamanho n−2 terminando em não-A, que tem 2aₙ₋₂ possibilidades).
+            <div class="example-result">aₙ = 2aₙ₋₁ + 2aₙ₋₂ · a₁=3 · a₂=8</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ERROS COMUNS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Esquecer as condições iniciais</strong>A recorrência sozinha não define a sequência — ela precisa de valores âncora (a₁, a₂, …) para começar. Sem eles, a fórmula produz infinitas sequências diferentes.</div>
+        <div class="error-card"><strong>❌ Montar a recorrência sem cobrir todos os casos</strong>Ao decompor o problema, você precisa garantir que os casos são mutuamente exclusivos e cobrem todas as possibilidades. Deixar um caso de fora produz uma recorrência incorreta.</div>
+        <div class="error-card"><strong>❌ Confundir a indexação de Fibonacci</strong>Existem convenções diferentes: F(0)=0,F(1)=1 ou F(1)=1,F(2)=1. Sempre especifique as condições iniciais que você está usando para evitar respostas erradas por deslocamento de índice.</div>
+        <div class="error-card"><strong>❌ Calcular T(n) da Torre de Hanoi sem a recorrência</strong>É tentador adivinhar a fórmula 2ⁿ−1 de cabeça, mas em problemas mais complexos isso não funciona. O caminho correto é sempre montar a recorrência primeiro e verificar a fórmula depois.</div>
+        <div class="error-card"><strong>❌ Usar Catalan onde o problema pede outra coisa</strong>Cₙ aparece em muitos contextos diferentes (parentesizações, caminhos, árvores, triangulações). Certifique-se de que a estrutura do problema realmente corresponde a um dos modelos de Catalan antes de aplicar a fórmula.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- RESUMO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Recorrência</strong>Regra aₙ = f(aₙ₋₁, aₙ₋₂, …) + condições iniciais</div>
+          <div class="summary-item"><strong>Fibonacci</strong>F(n)=F(n−1)+F(n−2) · F(1)=F(2)=1</div>
+          <div class="summary-item"><strong>Torre de Hanoi</strong>T(n)=2T(n−1)+1 · solução: 2ⁿ−1</div>
+          <div class="summary-item"><strong>Sequências binárias sem 00</strong>aₙ=aₙ₋₁+aₙ₋₂ · mesma estrutura de Fibonacci</div>
+          <div class="summary-item"><strong>Prog. Dinâmica</strong>Preencha tabela de subproblemas de baixo para cima</div>
+          <div class="summary-item"><strong>Catalan Cₙ</strong>C(2n,n)÷(n+1) · C₀=1,C₁=1,C₂=2,C₃=5,C₄=14</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T7 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t7e1">
+          <div class="ex-top">
+            <div class="ex-num">01</div>
+            <div class="ex-question">Calcule F(10): qual é o 10º termo da sequência de Fibonacci? (F(1)=F(2)=1)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="F(10) = ?" id="t7e1-inp">
+            <button class="btn btn-check" onclick="check('t7e1','55','F(1)=1, F(2)=1, F(3)=2, F(4)=3, F(5)=5, F(6)=8, F(7)=13, F(8)=21, F(9)=34, F(10)=55.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t7e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t7e1-hint">Aplique F(n) = F(n−1) + F(n−2) passo a passo a partir de F(1)=1 e F(2)=1 até chegar em F(10).</div>
+          <div class="feedback" id="t7e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t7e2">
+          <div class="ex-top">
+            <div class="ex-num">02</div>
+            <div class="ex-question">Quantos movimentos são necessários para resolver a Torre de Hanoi com 5 discos?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="T(5) = ?" id="t7e2-inp">
+            <button class="btn btn-check" onclick="check('t7e2','31','T(n) = 2ⁿ − 1. T(5) = 2⁵ − 1 = 32 − 1 = 31. Ou pela recorrência: T(4)=15, T(5)=2×15+1=31.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t7e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t7e2-hint">Use a fórmula fechada T(n) = 2ⁿ − 1, ou aplique T(n)=2T(n−1)+1 a partir de T(1)=1.</div>
+          <div class="feedback" id="t7e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t7e3">
+          <div class="ex-top">
+            <div class="ex-num">03</div>
+            <div class="ex-question">Quantas sequências binárias de comprimento 6 não contêm dois zeros consecutivos?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="a₆ = ?" id="t7e3-inp">
+            <button class="btn btn-check" onclick="check('t7e3','21','aₙ=aₙ₋₁+aₙ₋₂. a₁=2, a₂=3, a₃=5, a₄=8, a₅=13, a₆=13+8=21.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t7e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t7e3-hint">Use a recorrência aₙ = aₙ₋₁ + aₙ₋₂ com a₁=2 e a₂=3. Calcule termo a termo até a₆.</div>
+          <div class="feedback" id="t7e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t7e4">
+          <div class="ex-top">
+            <div class="ex-num">04</div>
+            <div class="ex-question">Calcule C₄: o 4º Número de Catalan. Use a fórmula Cₙ = C(2n,n) ÷ (n+1).</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="C₄ = ?" id="t7e4-inp">
+            <button class="btn btn-check" onclick="check('t7e4','14','C₄ = C(8,4) ÷ (4+1) = 70 ÷ 5 = 14.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t7e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t7e4-hint">Calcule C(2×4, 4) = C(8,4) = 70, depois divida por (4+1) = 5.</div>
+          <div class="feedback" id="t7e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t7e5">
+          <div class="ex-top">
+            <div class="ex-num">05</div>
+            <div class="ex-question">Numa escada, você pode subir 1 ou 2 degraus por vez. De quantas formas diferentes você pode chegar ao 7º degrau?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="Número de formas..." id="t7e5-inp">
+            <button class="btn btn-check" onclick="check('t7e5','21','f(n)=f(n−1)+f(n−2), f(1)=1, f(2)=2. f(3)=3, f(4)=5, f(5)=8, f(6)=13, f(7)=21.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t7e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t7e5-hint">Monte a recorrência: para chegar ao degrau n, você veio do n−1 ou do n−2. Comece com f(1)=1 e f(2)=2.</div>
+          <div class="feedback" id="t7e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t6')">← Tópico 6</button>
+        <button class="nav-btn primary" onclick="showPage('t8')">Tópico 8: Resolução →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TÓPICO 8
+  ══════════════════════════════════════════════ -->
+  <div id="page-t8" class="page">
+    <div class="lesson-wrap">
+      <div class="lesson-header">
+        <div class="lesson-num">TÓPICO 08 · Resolução</div>
+        <h1>Relações de Recorrência — Resolução</h1>
+        <p>Como encontrar fórmulas fechadas para recorrências lineares — sem precisar calcular termo a termo para sempre.</p>
+      </div>
+
+      <!-- VISÃO GERAL -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-overview">👁</div><h2>Visão Geral</h2></div>
+        <p>No Tópico 7 aprendemos a <em>montar</em> recorrências. Agora vamos aprender a <em>resolvê-las</em> — ou seja, encontrar uma <strong style="color:var(--text)">fórmula fechada</strong> que calcula o n-ésimo termo diretamente, sem iterar pelos anteriores. O método funciona para recorrências lineares (onde aₙ é combinação linear de termos anteriores).</p>
+        <div class="callout callout-blue">
+          <strong>Por que uma fórmula fechada é valiosa?</strong>
+          Com a recorrência T(n)=2T(n−1)+1 você precisa de n operações para chegar a T(n). Com a fórmula fechada T(n)=2ⁿ−1 você calcula instantaneamente para qualquer n. Em algoritmos e matemática, fórmulas fechadas são muito mais poderosas.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- INTUIÇÃO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-intuition">💡</div><h2>Intuição</h2></div>
+        <p>A ideia central é <strong style="color:var(--text)">tentar uma solução da forma aₙ = rⁿ</strong>. Se substituirmos esse formato na recorrência, ela vira uma equação algébrica em r — chamada de <em>equação característica</em>. As raízes dessa equação nos dizem a forma da solução geral.</p>
+        <div class="callout callout-purple">
+          <strong>A lógica por trás</strong>
+          Recorrências lineares têm soluções que são combinações de exponenciais. Ao supor aₙ=rⁿ e substituir, você transforma um problema de sequências num problema de álgebra — que sabe resolver.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ANALOGIA -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-analogy">🔗</div><h2>Analogia</h2></div>
+        <p>Pense numa EDO (equação diferencial). Para resolver y'' − 5y' + 6y = 0, você tenta y = eʳˣ e substitui, chegando na equação r² − 5r + 6 = 0. As raízes r=2 e r=3 dão a solução geral y = Ae²ˣ + Be³ˣ.</p>
+        <div class="callout callout-green">
+          <strong>Recorrências são as EDOs do mundo discreto</strong>
+          O processo é idêntico: tente aₙ=rⁿ, substitua na recorrência, ache as raízes da equação característica, monte a solução geral e use as condições iniciais para determinar as constantes. Mesma estrutura, mundo diferente.
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- PASSO A PASSO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-steps">📋</div><h2>Explicação Passo a Passo</h2></div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:20px 0 12px;font-weight:600">① Caso Homogêneo de Ordem 2</h3>
+        <p style="color:var(--text2)">Recorrência da forma: <code>aₙ = c₁·aₙ₋₁ + c₂·aₙ₋₂</code></p>
+        <ul class="step-list">
+          <li class="step-item"><div class="step-num">1</div><div class="step-content">Escreva a <strong>equação característica</strong>: substitua aₙ=rⁿ e divida por rⁿ⁻²</div></li>
+          <li class="step-item"><div class="step-num">2</div><div class="step-content">Obtenha: <code>r² = c₁·r + c₂</code>, ou seja <code>r² − c₁r − c₂ = 0</code></div></li>
+          <li class="step-item"><div class="step-num">3</div><div class="step-content">Encontre as raízes r₁ e r₂</div></li>
+          <li class="step-item"><div class="step-num">4</div><div class="step-content">Use as condições iniciais para determinar as constantes A e B</div></li>
+        </ul>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">② Raízes Distintas (r₁ ≠ r₂)</h3>
+        <div class="formula-box">
+          <div class="formula">aₙ = A·r₁ⁿ + B·r₂ⁿ</div>
+          <div class="formula-label">Solução geral — A e B determinados pelas condições iniciais</div>
+        </div>
+        <div class="example-card">
+          <div class="example-header">Exemplo — aₙ = 5aₙ₋₁ − 6aₙ₋₂, a₀=1, a₁=4</div>
+          <div class="example-body">
+            Eq. característica: r²−5r+6=0 → (r−2)(r−3)=0 → r₁=2, r₂=3<br>
+            Solução geral: aₙ = A·2ⁿ + B·3ⁿ<br>
+            Cond. iniciais: a₀=A+B=1 e a₁=2A+3B=4 → A=−1, B=2
+            <div class="example-result">aₙ = −2ⁿ + 2·3ⁿ</div>
+          </div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">③ Raiz Dupla (r₁ = r₂ = r)</h3>
+        <p style="color:var(--text2)">Quando a equação característica tem raiz repetida, a solução geral muda:</p>
+        <div class="formula-box">
+          <div class="formula">aₙ = (A + B·n)·rⁿ</div>
+          <div class="formula-label">O fator extra n é necessário para gerar duas soluções linearmente independentes</div>
+        </div>
+        <div class="example-card">
+          <div class="example-header">Exemplo — aₙ = 4aₙ₋₁ − 4aₙ₋₂, a₀=1, a₁=4</div>
+          <div class="example-body">
+            Eq. característica: r²−4r+4=0 → (r−2)²=0 → r=2 (dupla)<br>
+            Solução geral: aₙ = (A + B·n)·2ⁿ<br>
+            Cond. iniciais: a₀=A=1 e a₁=(A+B)·2=4 → A=1, B=1
+            <div class="example-result">aₙ = (1+n)·2ⁿ</div>
+          </div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">④ Fórmula de Binet para Fibonacci</h3>
+        <p style="color:var(--text2)">Aplicando o método às condições F(1)=F(2)=1:</p>
+        <div class="formula-box">
+          <div class="formula">F(n) = (φⁿ − ψⁿ) / √5</div>
+          <div class="formula-label">φ = (1+√5)/2 ≈ 1,618 (razão áurea) · ψ = (1−√5)/2 ≈ −0,618</div>
+        </div>
+        <div class="callout callout-yellow">
+          <strong>O incrível da fórmula de Binet</strong>
+          Ela envolve √5 e números irracionais — mas sempre produz inteiros! Isso porque os termos irracionais se cancelam perfeitamente na soma. É um dos resultados mais elegantes da matemática discreta.
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑤ Recorrências Não Homogêneas</h3>
+        <p style="color:var(--text2)">Quando há um termo extra: <code>aₙ = c₁·aₙ₋₁ + c₂·aₙ₋₂ + f(n)</code></p>
+        <div class="callout callout-blue">
+          <strong>Estratégia: solução particular + solução homogênea</strong>
+          Solução geral = solução da parte homogênea (sem f(n)) + uma solução particular de toda a equação.<br><br>
+          Se f(n) = d (constante) → tente aₙ = C (constante)<br>
+          Se f(n) = d·sⁿ → tente aₙ = C·sⁿ (se s não for raiz da homogênea)<br>
+          Se s for raiz da homogênea → tente aₙ = C·n·sⁿ
+        </div>
+        <div class="example-card">
+          <div class="example-header">Exemplo — Torre de Hanoi: T(n) = 2T(n−1) + 1</div>
+          <div class="example-body">
+            Homogênea: T(n)=2T(n−1) → solução A·2ⁿ<br>
+            Particular: tente T=C → C=2C+1 → C=−1<br>
+            Solução geral: T(n) = A·2ⁿ − 1<br>
+            Cond. inicial: T(1)=1 → 2A−1=1 → A=1
+            <div class="example-result">T(n) = 2ⁿ − 1</div>
+          </div>
+        </div>
+
+        <h3 style="color:var(--text);font-size:15px;margin:28px 0 12px;font-weight:600">⑥ Recorrências de Ordem Maior</h3>
+        <p style="color:var(--text2)">Para recorrências de ordem k (envolvendo aₙ₋₁, …, aₙ₋ₖ), a equação característica tem grau k. Se houver k raízes distintas r₁,…,rₖ:</p>
+        <div class="formula-box">
+          <div class="formula">aₙ = A₁·r₁ⁿ + A₂·r₂ⁿ + … + Aₖ·rₖⁿ</div>
+          <div class="formula-label">As k constantes são determinadas pelas k condições iniciais</div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- EXEMPLOS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-examples">⚡</div><h2>Exemplos Práticos</h2></div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 1 — Raízes distintas completo</div>
+          <div class="example-body">
+            <strong>Recorrência:</strong> aₙ = 3aₙ₋₁ − 2aₙ₋₂, a₀=0, a₁=1<br><br>
+            Eq. característica: r²−3r+2=0 → (r−1)(r−2)=0 → r₁=1, r₂=2<br>
+            Solução geral: aₙ = A·1ⁿ + B·2ⁿ = A + B·2ⁿ<br>
+            a₀: A+B=0 → A=−B<br>
+            a₁: A+2B=1 → −B+2B=1 → B=1, A=−1
+            <div class="example-result">aₙ = −1 + 2ⁿ = 2ⁿ − 1</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 2 — Raiz dupla completo</div>
+          <div class="example-body">
+            <strong>Recorrência:</strong> aₙ = 6aₙ₋₁ − 9aₙ₋₂, a₀=1, a₁=6<br><br>
+            Eq. característica: r²−6r+9=0 → (r−3)²=0 → r=3 (dupla)<br>
+            Solução geral: aₙ = (A+Bn)·3ⁿ<br>
+            a₀: A·1=1 → A=1<br>
+            a₁: (1+B)·3=6 → B=1
+            <div class="example-result">aₙ = (1+n)·3ⁿ</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 3 — Não homogênea com termo exponencial</div>
+          <div class="example-body">
+            <strong>Recorrência:</strong> aₙ = 3aₙ₋₁ + 2ⁿ, a₀=1<br><br>
+            Homogênea: aₙ=3aₙ₋₁ → solução A·3ⁿ<br>
+            Particular: tente C·2ⁿ → C·2ⁿ = 3C·2ⁿ⁻¹ + 2ⁿ → C = 3C/2 + 1 → −C/2=1 → C=−2<br>
+            Solução geral: aₙ = A·3ⁿ − 2·2ⁿ = A·3ⁿ − 2ⁿ⁺¹<br>
+            a₀: A−2=1 → A=3
+            <div class="example-result">aₙ = 3·3ⁿ − 2ⁿ⁺¹ = 3ⁿ⁺¹ − 2ⁿ⁺¹</div>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-header">📌 Exemplo 4 — Fórmula de Binet verificada</div>
+          <div class="example-body">
+            <strong>Verificação para n=5:</strong> F(5) deve ser 5.<br><br>
+            φ = (1+√5)/2 ≈ 1,618 · ψ = (1−√5)/2 ≈ −0,618<br>
+            φ⁵ ≈ 11,09 · ψ⁵ ≈ −0,09<br>
+            F(5) = (11,09 − (−0,09)) / √5 ≈ 11,18 / 2,236
+            <div class="example-result">F(5) = 5 ✓</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ERROS COMUNS -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-errors">⚠</div><h2>Erros Comuns</h2></div>
+        <div class="error-card"><strong>❌ Usar a fórmula de raízes distintas quando há raiz dupla</strong>Se r₁=r₂=r e você escreve A·rⁿ+B·rⁿ = (A+B)·rⁿ, você tem apenas uma constante livre — impossível satisfazer duas condições iniciais diferentes. Raiz dupla sempre exige o fator extra n.</div>
+        <div class="error-card"><strong>❌ Esquecer de verificar se s é raiz na solução particular</strong>Se f(n)=s·sⁿ e s já é raiz da homogênea, tentar C·sⁿ como particular leva a 0=0 — não funciona. Nesse caso, tente C·n·sⁿ.</div>
+        <div class="error-card"><strong>❌ Montar a equação característica errada</strong>Para aₙ=c₁aₙ₋₁+c₂aₙ₋₂, a equação é r²=c₁r+c₂, ou seja r²−c₁r−c₂=0. Errar os sinais aqui invalida toda a solução.</div>
+        <div class="error-card"><strong>❌ Não usar todas as condições iniciais</strong>Uma recorrência de ordem 2 precisa de 2 condições iniciais para determinar as 2 constantes A e B. Usar só uma deixa o sistema indeterminado.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- RESUMO -->
+      <div class="section">
+        <div class="section-label"><div class="icon icon-summary">📝</div><h2>Resumo</h2></div>
+        <div class="summary-grid">
+          <div class="summary-item"><strong>Equação característica</strong>Substitua aₙ=rⁿ → polinômio em r</div>
+          <div class="summary-item"><strong>Raízes distintas</strong>aₙ = A·r₁ⁿ + B·r₂ⁿ</div>
+          <div class="summary-item"><strong>Raiz dupla r</strong>aₙ = (A + B·n)·rⁿ</div>
+          <div class="summary-item"><strong>Não homogênea</strong>Geral = homogênea + particular</div>
+          <div class="summary-item"><strong>Binet (Fibonacci)</strong>F(n) = (φⁿ−ψⁿ)/√5 · φ=(1+√5)/2</div>
+          <div class="summary-item"><strong>Ordem k</strong>k raízes → k constantes → k cond. iniciais</div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIOS T8 -->
+      <div class="exercises-section">
+        <div class="exercises-header">
+          <h2>Teste seu Conhecimento</h2>
+          <span class="badge-count">5 exercícios</span>
+        </div>
+
+        <div class="exercise-card" id="t8e1">
+          <div class="ex-top">
+            <div class="ex-num">01</div>
+            <div class="ex-question">Qual é a equação característica da recorrência aₙ = 5aₙ₋₁ − 6aₙ₋₂? Escreva na forma r²−pr+q=0, respondendo o valor de p+q.</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="p + q = ?" id="t8e1-inp">
+            <button class="btn btn-check" onclick="check('t8e1','-1','A equação característica é r²−5r+6=0, com p=5 e q=6. Logo p+q = 5 + (−6) = −1. Raízes: (r−2)(r−3)=0 → r=2 e r=3.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t8e1')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t8e1-hint">Substitua aₙ=rⁿ na recorrência e divida por rⁿ⁻². Para aₙ=c₁aₙ₋₁+c₂aₙ₋₂ a equação é r²−c₁r−c₂=0.</div>
+          <div class="feedback" id="t8e1-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t8e2">
+          <div class="ex-top">
+            <div class="ex-num">02</div>
+            <div class="ex-question">Resolva: aₙ = 5aₙ₋₁ − 6aₙ₋₂, com a₀=1 e a₁=0. Qual é o valor de a₃?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="a₃ = ?" id="t8e2-inp">
+            <button class="btn btn-check" onclick="check('t8e2','-30','Raízes r=2 e r=3. aₙ=A·2ⁿ+B·3ⁿ. a₀: A+B=1. a₁: 2A+3B=0 → A=3, B=−2. Fórmula: aₙ=3·2ⁿ−2·3ⁿ. a₃=3·8−2·27=24−54=−30.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t8e2')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t8e2-hint">Monte o sistema com a₀ e a₁ para encontrar A e B, depois calcule a₃ diretamente pela fórmula — ou aplique a recorrência três vezes a partir dos valores iniciais.</div>
+          <div class="feedback" id="t8e2-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t8e3">
+          <div class="ex-top">
+            <div class="ex-num">03</div>
+            <div class="ex-question">A recorrência aₙ = 4aₙ₋₁ − 4aₙ₋₂ tem raiz dupla. Qual é essa raiz?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="r = ?" id="t8e3-inp">
+            <button class="btn btn-check" onclick="check('t8e3','2','Equação característica: r²−4r+4=0 → (r−2)²=0. Raiz dupla r=2.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t8e3')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t8e3-hint">Monte a equação característica r²−4r+4=0 e tente fatorar como (r−a)²=0.</div>
+          <div class="feedback" id="t8e3-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t8e4">
+          <div class="ex-top">
+            <div class="ex-num">04</div>
+            <div class="ex-question">Resolva a Tower of Hanoi pela solução não homogênea: T(n)=2T(n−1)+1, T(1)=1. Qual é T(6)?</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="T(6) = ?" id="t8e4-inp">
+            <button class="btn btn-check" onclick="check('t8e4','63','T(n)=2ⁿ−1. T(6)=2⁶−1=64−1=63.')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t8e4')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t8e4-hint">A fórmula fechada da Torre de Hanoi é T(n)=2ⁿ−1. Substitua n=6.</div>
+          <div class="feedback" id="t8e4-fb"></div>
+        </div>
+
+        <div class="exercise-card" id="t8e5">
+          <div class="ex-top">
+            <div class="ex-num">05</div>
+            <div class="ex-question">Para a fórmula de Binet F(n)=(φⁿ−ψⁿ)/√5, qual é o valor de φ+ψ? (φ=(1+√5)/2, ψ=(1−√5)/2)</div>
+          </div>
+          <div class="ex-input-row">
+            <input class="ex-input" type="text" placeholder="φ + ψ = ?" id="t8e5-inp">
+            <button class="btn btn-check" onclick="check('t8e5','1','φ+ψ = (1+√5)/2 + (1−√5)/2 = (1+√5+1−√5)/2 = 2/2 = 1. Os √5 se cancelam!')">Verificar</button>
+            <button class="btn btn-hint" onclick="toggleHint('t8e5')">💡 Dica</button>
+          </div>
+          <div class="hint-box" id="t8e5-hint">Some as duas frações diretamente. O que acontece com os termos √5?</div>
+          <div class="feedback" id="t8e5-fb"></div>
+        </div>
+      </div>
+
+      <div class="lesson-nav">
+        <button class="nav-btn" onclick="showPage('t7')">← Tópico 7</button>
+        <button class="nav-btn primary" onclick="showPage('home')">Voltar ao Início ↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────
+const solved = new Set();
+const total = 40;
+
+// ── NAVIGATION ────────────────────────────────────
+const pages = ['home','t1','t2','t3','t4','t5','t6','t7','t8'];
+const breadcrumbs = {
+  home: 'Início',
+  t1: 'Tópico 1 — Contagem e Bijeções',
+  t2: 'Tópico 2 — Permutações e Arranjos',
+  t3: 'Tópico 3 — Combinações',
+  t4: 'Tópico 4 — Multiconjuntos',
+  t5: 'Tópico 5 — Princípio da Casa dos Pombos',
+  t6: 'Tópico 6 — Princípio da Inclusão-Exclusão',
+  t7: 'Tópico 7 — Relações de Recorrência (Modelagem)',
+  t8: 'Tópico 8 — Relações de Recorrência (Resolução)'
+};
+
+function showPage(id) {
+  pages.forEach(p => {
+    document.getElementById('page-'+p).classList.remove('active');
+  });
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('breadcrumb').textContent = breadcrumbs[id];
+
+  // update nav
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+id+"'")) {
+      el.classList.add('active');
+    }
+  });
+
+  window.scrollTo(0,0);
+  closeSidebar();
+}
+
+// ── EXERCISES ─────────────────────────────────────
+function normalize(val) {
+  return val.replace(/\./g,'').replace(/,/g,'').replace(/\s/g,'').toLowerCase();
+}
+
+function check(id, answer, explanation) {
+  const input = document.getElementById(id+'-inp');
+  const fb = document.getElementById(id+'-fb');
+  const card = document.getElementById(id);
+  const val = normalize(input.value.trim());
+  const answers = answer.split('|').map(a => normalize(a));
+
+  if (!val) { fb.innerHTML = '<span class="feedback-icon">⚠</span> Por favor, digite uma resposta.'; fb.className = 'feedback wrong show'; return; }
+
+  if (answers.includes(val)) {
+    fb.innerHTML = '<span class="feedback-icon">✔</span> <strong>Correto!</strong> ' + explanation;
+    fb.className = 'feedback correct show';
+    card.className = 'exercise-card correct';
+    solved.add(id);
+    input.disabled = true;
+    card.querySelectorAll('.btn-check').forEach(b => b.disabled = true);
+  } else {
+    fb.innerHTML = '<span class="feedback-icon">✘</span> <strong>Não está certo.</strong> Verifique seu raciocínio e tente novamente. <em>Dica: clique em 💡 para uma pista!</em>';
+    fb.className = 'feedback wrong show';
+    card.className = 'exercise-card wrong';
+    setTimeout(() => { card.className = 'exercise-card'; }, 1500);
+  }
+  updateProgress();
+}
+
+function toggleHint(id) {
+  const hint = document.getElementById(id+'-hint');
+  hint.classList.toggle('show');
+}
+
+// ── PROGRESS ──────────────────────────────────────
+function updateProgress() {
+  const pct = Math.round((solved.size / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('ex-status').textContent = solved.size + ' de ' + total + ' exercícios resolvidos';
+}
+
+// ── SIDEBAR MOBILE ────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// Fix t4e2 answer
+const t4e2btn = document.querySelector('#t4e2 .btn-check');
+if (t4e2btn) {
+  t4e2btn.setAttribute('onclick', "check('t4e2','1365','n=11, k=5. C(11+5-1, 5-1) = C(15,4) = 1365.')");
+}
+
+// Fix t4e5 answer
+const t4e5btn = document.querySelector('#t4e5 .btn-check');
+if (t4e5btn) {
+  t4e5btn.setAttribute('onclick', "check('t4e5','66','Substitua: y₁=x₁−3, y₂=x₂−2, y₃=x₃. Nova soma: y₁+y₂+y₃ = 15−3−2 = 10. C(10+3−1, 3−1) = C(12,2) = 66.')");
+}
+
+updateProgress();
+</script>
+</body>
+</html>
